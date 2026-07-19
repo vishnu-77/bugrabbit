@@ -1,0 +1,45 @@
+// settings.local.json.example — for developing the bug-fixer PLUGIN SOURCE itself (this repo),
+// copy to .claude/settings.local.json (git-ignored) and adjust.
+//
+// This is NOT the permissions snippet for using the installed plugin against a target repo — a
+// plugin cannot bundle permission policy. See README.md's "Permissions" section for that snippet
+// (deny-guards: never open/merge PRs, no force/main push, no destructive gh, no rm -rf) to paste
+// into your own ~/.claude/settings.json or a target project's .claude/settings.json.
+//
+// This local file is only where YOU allow the read-only + branch-scoped commands you don't want to
+// be prompted for while iterating on this plugin's own source. It never overrides a deny.
+//
+// Optional: enable the prompt-audit hook by adding the "hooks" block below (see scripts/log-prompt.sh).
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr list:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git checkout -b:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin:*)",
+      "Bash(scripts/gate.sh:*)",
+      "Bash(scripts/repo-status.sh:*)",
+      "Bash(scripts/find-bugs.sh:*)",
+      "Bash(scripts/ci-guard.sh:*)",
+      "Bash(scripts/ci-pr-meta-check.sh:*)",
+      "Bash(scripts/poll-issues.sh:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)"
+    ]
+  }
+
+  // To log every prompt verbatim to SESSION-PROMPTS.md, add:
+  // ,"hooks": {
+  //   "UserPromptSubmit": [
+  //     { "hooks": [ { "type": "command", "command": "scripts/log-prompt.sh" } ] }
+  //   ]
+  // }
+}

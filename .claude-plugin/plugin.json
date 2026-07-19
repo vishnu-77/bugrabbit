@@ -1,0 +1,5 @@
+{
+  "name": "bug-fixer",
+  "description": "Automated GitHub issue triage, root-cause fixing, and PR review for any repo",
+  "version": "1.0.0"
+}

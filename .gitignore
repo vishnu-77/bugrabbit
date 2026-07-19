@@ -1,0 +1,9 @@
+# OS
+.DS_Store
+
+# Local, per-machine settings (keep the .example tracked)
+.claude/settings.local.json
+
+# Never commit secrets
+.env
+*.env
