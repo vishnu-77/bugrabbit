@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1] — 2026-07-19
+
+- Added `.github/workflows/release.yml`: automates tag + GitHub Release creation on every future
+  `plugin.json` version bump (this release is its first live test).
+- Extended `tests/validate-project.ps1` to check the new workflow's hardening (pinned checkout,
+  timeout, minimal permissions, re-tag guard).
+
 ## [2.0.0] — 2026-07-19
 
 Breaking: distribution and invocation both change — this is no longer a `.claude/` folder you copy
