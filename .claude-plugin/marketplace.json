@@ -1,0 +1,13 @@
+{
+  "name": "bug-fixer",
+  "owner": {
+    "name": "vishnu-77"
+  },
+  "plugins": [
+    {
+      "name": "bug-fixer",
+      "source": "./",
+      "description": "Automated GitHub issue triage, root-cause fixing, and PR review for any repo"
+    }
+  ]
+}
