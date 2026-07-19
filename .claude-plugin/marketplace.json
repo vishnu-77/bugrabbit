@@ -1,5 +1,6 @@
 {
   "name": "bug-fixer",
+  "description": "Single-plugin marketplace for the bug-fixer control plane (issue triage, root-cause fixing, PR review).",
   "owner": {
     "name": "vishnu-77"
   },

@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.0.0] — 2026-07-19
+
+Breaking: distribution and invocation both change — this is no longer a `.claude/` folder you copy
+into a repo, it's an installable plugin (`/bug-fixer:<command>` instead of `/<command>`).
+
+- Restructured as an installable Claude Code plugin: added `.claude-plugin/plugin.json`; moved
+  `.claude/agents`, `.claude/commands`, `.claude/scripts` to plugin-root `agents/`, `commands/`,
+  `scripts/`; split the `SessionStart` hook into `hooks/hooks.json` (the permission deny-list is not
+  bundled — see `WORKFLOW.md`'s Permissions section). Commands/agents/scripts now reference their own
+  bundled files via `${CLAUDE_PLUGIN_ROOT}` instead of `.claude/`-relative paths.
+- Added `.claude-plugin/marketplace.json` (self-referencing, `source: "./"`) so
+  `claude plugin marketplace add <repo>` + `claude plugin install bug-fixer@bug-fixer` work directly
+  from the GitHub repo — `claude plugin install` requires an actual marketplace manifest, not just
+  `plugin.json`.
+- Fixed `repo-status.sh`/`poll-issues.sh` using `gh -C <path>` (not a valid `gh` flag — `gh` has no
+  directory option, only `-R owner/repo`), which silently degraded GitHub state for any target repo
+  other than the enclosing one. Both now derive `owner/repo` and use `gh ... -R`.
+- Fixed the `owner/repo` slug-extraction regex (`sed -E`'s non-greedy `+?` is not honoured by POSIX
+  ERE, so it left a trailing `.git` on the slug) that fed the broken `-C` calls above.
+- Fixed malformed YAML frontmatter (unquoted `[...]` in `argument-hint`) in 7 command files, caught by
+  `claude plugin validate`.
+
 ## 1.2.0 — 2026-07-17
 
 - Make bug-fixer repository-local and repo-agnostic: operational scripts automatically resolve the
@@ -19,21 +41,8 @@
 All notable changes to the bug-fixing agent system are recorded here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); agents are versioned
-per-agent (semver) via the `version:` field in each `.claude/agents/*.md` frontmatter. Releases are
-cut as git tags (`vMAJOR.MINOR.PATCH`) and summarised below.
-
-## [Unreleased]
-
-- Restructured as an installable Claude Code plugin: added `.claude-plugin/plugin.json`; moved
-  `.claude/agents`, `.claude/commands`, `.claude/scripts` to plugin-root `agents/`, `commands/`,
-  `scripts/`; split the `SessionStart` hook into `hooks/hooks.json` (the permission deny-list is not
-  bundled — see `WORKFLOW.md`'s Permissions section). Commands/agents/scripts now reference their own
-  bundled files via `${CLAUDE_PLUGIN_ROOT}` instead of `.claude/`-relative paths.
-- Fixed `repo-status.sh`/`poll-issues.sh` using `gh -C <path>` (not a valid `gh` flag — `gh` has no
-  directory option, only `-R owner/repo`), which silently degraded GitHub state for any target repo
-  other than the enclosing one. Both now derive `owner/repo` and use `gh ... -R`.
-- Fixed the `owner/repo` slug-extraction regex (`sed -E`'s non-greedy `+?` is not honoured by POSIX
-  ERE, so it left a trailing `.git` on the slug) that fed the broken `-C` calls above.
+per-agent (semver) via the `version:` field in each `agents/*.md` frontmatter. Plugin releases are
+cut as git tags (`bug-fixer--vMAJOR.MINOR.PATCH`, via `claude plugin tag`) and summarised below.
 
 ## [1.0.0] - 2026-07-16
 
