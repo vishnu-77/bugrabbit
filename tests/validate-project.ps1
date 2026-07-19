@@ -19,6 +19,7 @@ function Read-ProjectFile {
 }
 
 $workflow = Read-ProjectFile '.github/workflows/bug-finder.yml'
+$releaseWorkflow = Read-ProjectFile '.github/workflows/release.yml'
 $installer = Read-ProjectFile 'scripts/install-runtime.sh'
 $poller = Read-ProjectFile 'scripts/poll-issues.sh'
 $gate = Read-ProjectFile 'scripts/gate.sh'
@@ -46,6 +47,12 @@ Assert-True ($workflow -match 'timeout-minutes:\s*[1-9]') 'review job has no tim
 Assert-True ($workflow -match 'head\.repo\.full_name == github\.repository') 'fork PRs are not excluded'
 Assert-True ($workflow -match 'claude -p --tools ""') 'Claude reviewer tools are not disabled'
 Assert-True ($workflow -match 'max_bytes=') 'review input has no size cap'
+
+Assert-True ($releaseWorkflow -match 'actions/checkout@[0-9a-f]{40}') 'release checkout action is not pinned to a full SHA'
+Assert-True ($releaseWorkflow -match 'timeout-minutes:\s*[1-9]') 'release job has no timeout'
+Assert-True ($releaseWorkflow -match 'permissions:\s*\r?\n\s*contents:\s*write') 'release workflow does not declare minimal contents:write permission'
+Assert-True ($releaseWorkflow -match "rev-parse\s+`"refs/tags/") 'release workflow does not guard against re-tagging an existing version'
+Assert-True ($releaseWorkflow.Contains('.claude-plugin/plugin.json')) 'release workflow does not read the plugin version'
 
 Assert-True ($poller.Contains('key="$REPO_SLUG#$num"')) 'issue poller does not use a repository-qualified key'
 Assert-True ($backlog.Contains('owner/repo#issue')) 'backlog does not document the composite identity'
