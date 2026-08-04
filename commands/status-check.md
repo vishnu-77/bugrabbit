@@ -20,6 +20,10 @@ Detect and label:
 - **DUP-BRANCH** — more than one `fix/<#>-*` branch for one issue.
 - **ORPHAN-ROW** — a `FIX-NNN` row whose issue is `closed`/deleted on GitHub → mark for archive.
 - **STALE-DONE** — a row `DONE` but its issue is still open with no merged PR → flag for recheck.
+- **STALE-PARTIAL** — a row `PARTIAL` whose *shipped slice* has no open or merged PR at all (i.e. the
+  branch exists but nothing was ever proposed for it) → flag for recheck. An issue staying open with
+  no PR yet for the *deferred remainder* is expected for `PARTIAL` and is not itself stale — only flag
+  when the shipped slice itself looks abandoned.
 - **UNTRACKED** — an open issue with no issue-log row (cron missed it) → append `UNTRIAGED`.
 - **UNWORKED** — issue-log `UNTRIAGED`/`TRIAGED` older than N days with no branch → surface as backlog.
 - **DRIFT-STATUS** — backlog status disagrees with reality (e.g. `IN-PROGRESS` but branch pushed +

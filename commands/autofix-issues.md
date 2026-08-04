@@ -9,8 +9,10 @@ open issues** and return a single well-formatted summary. Idempotent — safe to
 **Selection + dedup:**
 1. Refresh the seen set: run `${CLAUDE_PLUGIN_ROOT}/scripts/poll-issues.sh` (records new issues `UNTRIAGED`).
 2. Build the work set from open issues, filtered by `--label` (default `auto-fix`), `--severity`,
-   `--limit`. **Skip** any issue that already has a `FIX-NNN` row with status `DONE`, an open PR from a
-   `fix/<#>-*` branch, or an issue-log status `DONE`/`SKIPPED` — never redo settled work.
+   `--limit`. **Skip** any issue that already has a `FIX-NNN` row with status `DONE` or `PARTIAL`, an
+   open PR from a `fix/<#>-*` branch, or an issue-log status `DONE`/`SKIPPED` — never redo settled
+   work. A `PARTIAL` row means a bounded slice already shipped; its documented remainder is separate
+   follow-up work, not something this pass should pick back up automatically.
 3. If `--dry-run`, print the work set + why each was included/skipped and stop (no mutations).
 
 **Execution (bounded, sequential per issue to keep a clean branch boundary):**

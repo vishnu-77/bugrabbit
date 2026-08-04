@@ -9,7 +9,8 @@ a branch; the **human opens the PR** (agents never open/merge PRs).
 **Idempotency + dedup (check FIRST — never duplicate work):**
 - Derive `owner/repo` from the active repository's `origin`; use `owner/repo#$ARGUMENTS` for every
   ledger lookup. If a matching `FIX-NNN` row exists in `docs/backlog.md`:
-  - status `DONE` → report it (branch + commit) and stop unless the user forces a redo.
+  - status `DONE` or `PARTIAL` → report it (branch + commit, and for `PARTIAL` the documented
+    deferred remainder) and stop unless the user forces a redo.
   - status `IN-PROGRESS`/`IN-REVIEW` → resume that row; do not mint a new one.
 - If a branch `fix/$ARGUMENTS-*` already exists (local or remote, `git branch -a`), **reuse it** —
   never create a second branch for the same issue.

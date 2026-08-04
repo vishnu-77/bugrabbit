@@ -7,8 +7,9 @@ Use the enclosing Git repository, or the `/set-repo` override. Assign task **$AR
 pipeline is `/fix-issue`.
 
 1. Resolve the task ID (`FIX-NNN`) + target agent. The row must exist in `docs/backlog.md` and not be
-   `DONE`. If exactly one open row and no agent given, auto-pick `bug-fixer` and **announce** the
-   inference before proceeding.
+   `DONE` or `PARTIAL` (a `PARTIAL` row's shipped slice is finished; its deferred remainder needs a
+   new `FIX-NNN` row of its own, not reassignment of the old one). If exactly one open row and no
+   agent given, auto-pick `bug-fixer` and **announce** the inference before proceeding.
 2. **Load the agent by plugin-relative path** `${CLAUDE_PLUGIN_ROOT}/agents/<agent>.md` where `<agent>` ∈
    {`bug-triager`, `bug-fixer`, `pr-reviewer`, `qa-verifier`}. Confirm the file exists — if absent,
    **REFUSE (fail-closed)**; never dispatch a bare guessed name, never `~/.claude/agents/`.

@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer
-version: 1.0.0
+version: 1.1.0
 description: Read-only bug-finding review of a PR / commit-range / working diff against the review rubric. Returns structured findings (severity + file:line + fix). Used locally and by CI. Never edits code.
 model: sonnet
 ---

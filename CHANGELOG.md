@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.1.1] — 2026-08-04
+
+Follow-up to 2.1.0: the new `PARTIAL` status was only wired into `docs/backlog.md` and
+`repo-status.sh`, not into the places that actually check for `DONE`. Found by re-reading the whole
+plugin after shipping, not by a second real run.
+
+- `commands/autofix-issues.md`, `commands/work-issue.md`, `commands/assign.md`: dedup/skip checks now
+  also recognise `PARTIAL` (a shipped, bounded slice) so it isn't silently re-picked-up or reassigned.
+- `commands/status.md`: status legend list now includes `PARTIAL`.
+- `commands/status-check.md`: added `STALE-PARTIAL` alongside `STALE-DONE` — with the caveat that an
+  issue staying open for a `PARTIAL` row's *deferred remainder* is expected, not itself stale; only
+  flag when the shipped slice has no PR at all.
+- `agents/pr-reviewer.md`: bumped its own `version: 1.0.0 -> 1.1.0` frontmatter to match the 2.1.0
+  content change — missed in that release despite the plugin's own stated per-agent semver policy.
+- Confirmed `commands/archive-task.md` correctly does **not** auto-archive `PARTIAL` rows (unlike
+  `DONE`) — a partial row still has documented outstanding work, so this was already right and is
+  left unchanged.
+
+### Agents
+- **pr-reviewer** 1.1.0 — added out-of-scope-finding guidance (from 2.1.0), version bump follow-up.
+
 ## [2.1.0] — 2026-08-04
 
 Found via a real end-to-end run against a Node monorepo (13 GitHub issues triaged/fixed).
