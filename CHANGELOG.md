@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.1.0] — 2026-08-04
+
+Found via a real end-to-end run against a Node monorepo (13 GitHub issues triaged/fixed).
+
+- **`gate.sh`**: fixed going `INCONCLUSIVE` on any monorepo whose root `package.json` has no
+  lint/test/build scripts of its own (workspaces hold them instead). Now detects npm/yarn
+  `workspaces` or a `pnpm-workspace.yaml` and gates every workspace that has runnable scripts,
+  aggregating pass/fail correctly (no subshells, so `FAIL`/`RAN` state survives across workspaces).
+  `resolve_repo` always normalises to the git root, so this was the only way `gate.sh` could ever be
+  useful on this repo shape — there was no way to scope it to one workspace via `TARGET_DIR`.
+- **`docs/backlog.md`**: added a `PARTIAL` status — a safe, bounded slice of an issue's full scope
+  shipped, with the remainder deliberately deferred (e.g. it touches money/PII paths needing human
+  sign-off, or spans far more call sites than one fix should). Previously this pattern had no home in
+  the status legend and had to be improvised in free-text notes. `repo-status.sh` counts it.
+- **`repo-status.sh`**: added a stale-close-candidate check — cross-references `DONE`/`PARTIAL`
+  backlog rows against live GitHub issue state and flags any that the backlog already considers
+  resolved but that are still `OPEN` on GitHub. On the run that motivated this, 10 of 13 audit-sourced
+  issues turned out to already be fixed and merged weeks earlier, just never closed on GitHub —
+  previously nothing surfaced this short of a full `/autofix-issues` pass re-discovering it.
+- **`docs/fix-playbook.md`**: made the `codebase-memory` MCP fallback explicit and first-class —
+  agents now treat "MCP not connected, fall back to Grep/Read/Glob" as a normal supported path
+  instead of silently improvising it every run. Also documents the `PARTIAL` pattern from above.
+- **`agents/pr-reviewer.md`**: added guidance for a real bug found outside the current issue's scope
+  (e.g. a tooling/hook bug noticed while reviewing a branch) — report it, say plainly it's out of
+  scope, and let the Coordinator spin it off separately rather than folding it into or blocking the
+  current fix.
+- **`commands/init-repo.md`** + **`scripts/install-runtime.sh`**: bootstrap now runs one baseline
+  `gate.sh` pass (informational only, never blocks install) and reports pre-existing toolchain gaps
+  up front — so a broken test runner or a missing lint config is known at `/init-repo` time, not
+  rediscovered mid-fix on the first `/work-issue`.
+
 ## [2.0.1] — 2026-07-19
 
 - Added `.github/workflows/release.yml`: automates tag + GitHub Release creation on every future

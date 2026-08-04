@@ -14,16 +14,23 @@ reproduce → locate cause (not symptom) → smallest fix → gate green → ver
 - If you cannot reproduce, **stop** and state what is missing. Never fix a bug you cannot see.
 
 ## 2. Locate the cause, not the symptom
-- Use **codebase-memory MCP first**: `search_code` to find the site, `trace_path` for call/data flow,
-  `get_code_snippet` to read.
+- Use **codebase-memory MCP if it's connected** (`search_code` to find the site, `trace_path` for
+  call/data flow, `get_code_snippet` to read) — it's the fast path when available. If it isn't
+  connected in this environment, that's a normal, fully-supported path too: fall back to
+  Grep/Read/Glob directly and keep going, no need to stop and report the gap each time.
 - Separate the **symptom site** (where it blows up) from the **cause site** (why). Fix the cause.
-- Map the **blast radius**: callers/dependents of the code you will change (`trace_path`).
+- Map the **blast radius**: callers/dependents of the code you will change (`trace_path`, or Grep for
+  callers if MCP is unavailable).
 
 ## 3. Smallest change
 - Change only what is needed to fix the cause. No drive-by refactors, no reformatting untouched code,
   no unrelated files.
 - If the correct fix is large or ambiguous, return `NEEDS_FIX`/`BLOCKED` and let the Coordinator
   re-scope — do not sprawl.
+- If a bounded first slice is safe but the full scope described by the issue isn't (e.g. it touches
+  money/PII paths, or spans far more call sites than one fix should), ship the safe slice and mark it
+  `PARTIAL` in `docs/backlog.md` (see the status legend there) rather than forcing the whole thing or
+  refusing outright. Document exactly what's deferred and why, as its own follow-up.
 - Prefer a fix that a staff engineer would approve: clear cause, minimal surface, reversible.
 
 ## 4. Gate green

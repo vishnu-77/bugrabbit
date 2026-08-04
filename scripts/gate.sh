@@ -55,6 +55,32 @@ if [ -f package.json ]; then
       warn "node: no 'test' script in package.json (skipped)"
     fi
     npm_has build      && run "build"      npm run --silent build
+
+    # Monorepo fallback: the root package.json declares workspaces (npm/yarn
+    # `workspaces` field, or a pnpm-workspace.yaml) but has no runnable scripts
+    # of its own — common in this shape of repo. Rather than go INCONCLUSIVE,
+    # gate every workspace that has its own scripts. No subshells: cd there and
+    # back so `run`'s FAIL/RAN mutations propagate to this process, not a child.
+    if [ "$RAN" -eq 0 ]; then
+      IS_WORKSPACE_ROOT=0
+      node -e "process.exit((require('./package.json').workspaces)?0:1)" 2>/dev/null && IS_WORKSPACE_ROOT=1
+      [ -f pnpm-workspace.yaml ] && IS_WORKSPACE_ROOT=1
+      if [ "$IS_WORKSPACE_ROOT" = "1" ]; then
+        echo "-- monorepo root has no runnable scripts; gating individual workspaces --"
+        ROOT_DIR="$(pwd)"
+        while IFS= read -r ws_pkg; do
+          ws_dir="$(dirname "$ws_pkg")"
+          [ "$ws_dir" = "." ] && continue
+          echo "-- workspace: $ws_dir --"
+          cd "$ROOT_DIR/$ws_dir"
+          npm_has lint       && run "lint ($ws_dir)"       npm run --silent lint
+          npm_has typecheck  && run "typecheck ($ws_dir)"  npm run --silent typecheck
+          npm_has test       && run "test ($ws_dir)"       npm test --silent
+          npm_has build      && run "build ($ws_dir)"      npm run --silent build
+          cd "$ROOT_DIR"
+        done < <(find . -maxdepth 3 -name package.json -not -path '*/node_modules/*' ! -path './package.json')
+      fi
+    fi
   else
     hard "package.json present but npm not installed"
   fi

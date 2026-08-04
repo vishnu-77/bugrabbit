@@ -13,6 +13,7 @@ Source of truth for **open fix work**. One `FIX-NNN` row per repository-qualifie
 | `IN-PROGRESS` | `bug-fixer` is building the fix on a branch. |
 | `IN-REVIEW` | Gate green; in `pr-reviewer` ∥ `qa-verifier` review. |
 | `DONE` | Reviews passed, branch pushed. (Human opens the PR.) Archive later. |
+| `PARTIAL` | A safe, bounded slice of the issue's full scope shipped (reviews passed, branch pushed); the remainder is deliberately deferred — e.g. it touches money/PII paths needing explicit human sign-off, or spans far more call sites than one fix should. The task body must name exactly what shipped and what's deferred, as its own follow-up. |
 | `BLOCKED` | Not reproducible / cause unclear / upstream precondition unmet. |
 
 ## Task table

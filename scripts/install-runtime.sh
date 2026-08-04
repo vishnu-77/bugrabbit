@@ -50,3 +50,19 @@ done
 
 echo "runtime: installed=$installed unchanged=$unchanged conflicts=$conflicts"
 [ "$conflicts" -eq 0 ] || exit 1
+
+# Baseline toolchain health — informational only, never fails the install. Surfaces
+# pre-existing gate breakage (missing lint config, broken test toolchain, etc.) up
+# front at bootstrap time, so the first /work-issue run isn't the first time anyone
+# learns the gate doesn't run cleanly here.
+echo ""
+echo "-- baseline toolchain health (informational, does not affect install) --"
+ALLOW_EMPTY_GATE=1 bash "$ROOT/scripts/gate.sh" "$TARGET" > /tmp/bug-fixer-baseline-gate.$$ 2>&1
+GATE_RC=$?
+if [ "$GATE_RC" -eq 0 ]; then
+  echo "  gate.sh: clean baseline"
+else
+  echo "  gate.sh: pre-existing issues found (not caused by this install) — see below"
+  grep -E '^(FAIL|warn):' /tmp/bug-fixer-baseline-gate.$$ || true
+fi
+rm -f /tmp/bug-fixer-baseline-gate.$$

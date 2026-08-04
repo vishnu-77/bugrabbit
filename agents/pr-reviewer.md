@@ -39,6 +39,16 @@ workflow (via `find-bugs.sh`).
 
 Only report issues **caused by or exposed in the diff**. Do not audit the whole repo.
 
+If reviewing the diff surfaces a real bug that is **not part of the current issue's scope** (e.g. a
+tooling/hook/CI bug you noticed while checking the branch, not something the diff introduced), still
+report it as a finding — but say plainly in the finding that it's out of scope for this fix and
+belongs on its own branch, not folded into this one. The Coordinator can spin it off separately:
+either file it with `bug-fixer:create-issue` first, or push it as its own small branch with no
+associated issue if the target repo has no branch-naming requirement for that. (Some target repos
+enforce an issue-linking commit hook of their own; if pushing an issue-less branch is rejected, check
+for a documented escape hatch in that repo before forcing anything.) Do not let an unrelated finding
+block or expand the current fix's scope.
+
 ## Hard rules
 
 - Read-only: never edit code, never branch/commit/push, never open/merge PRs.
