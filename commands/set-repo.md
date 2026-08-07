@@ -3,7 +3,7 @@ description: Optionally override the auto-detected Git repository used for this 
 argument-hint: <path-or-subproject>
 ---
 
-Normally bug-fixer uses the enclosing Git repository automatically. Use this command only to set
+Normally BugRabbit uses the enclosing Git repository automatically. Use this command only to set
 the active target repo for this session to **$ARGUMENTS** when controlling a different repository.
 
 1. Resolve the path. It must be a directory that **is a git repo** (`git -C <path> rev-parse

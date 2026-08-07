@@ -1,4 +1,4 @@
-# WORKFLOW.md — dev guide for the bug-fixing agent system
+# WORKFLOW.md — dev guide for BugRabbit, the bug-fixing agent system
 
 How a developer actually uses this system day to day. The design lives in
 `docs/agent-system-plan.md`; the rules the agents follow live in `CLAUDE.md`. This file is the
@@ -24,10 +24,10 @@ One target repo per session. GitHub is the only tracker. Durable state is keyed 
 brew install gh && gh auth login             # 1. GitHub CLI (prerequisite)
 claude --plugin-dir <path-to-this-plugin>    # 2. dev/local test, OR:
 /plugin install <git-url-of-this-plugin>     #    install it properly (any repo, no copying files in)
-/bug-fixer:init-repo <repo-path>             # 3. bootstrap a target: git/remote check, copy CI, index it
+/bugrabbit:init-repo <repo-path>             # 3. bootstrap a target: git/remote check, copy CI, index it
 ```
 
-`/bug-fixer:init-repo` prints a checklist (git ✓/✗, remote ✓/✗, gh ✓/✗, workflow copied, indexed).
+`/bugrabbit:init-repo` prints a checklist (git ✓/✗, remote ✓/✗, gh ✓/✗, workflow copied, indexed).
 Fix anything it flags. If the target isn't a git repo it offers `git init`; add a remote with
 `git remote add origin <url>`.
 
@@ -82,7 +82,7 @@ automatically.
 
 ## Repository selection is automatic
 
-When bug-fixer is present inside a Git repository, every command automatically uses
+When BugRabbit is present inside a Git repository, every command automatically uses
 `git rev-parse --show-toplevel`. No setup command is required. To control another repository, run
 `/set-repo <repo-path>` as an explicit session override.
 

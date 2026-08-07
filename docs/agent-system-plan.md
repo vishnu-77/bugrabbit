@@ -16,7 +16,7 @@ pinned Sonnet sub-agents + slash commands + thin helper scripts + docs backlog +
 
 ## Layout
 ```
-bug-fixer/
+bugrabbit/                      (plugin root)
   CLAUDE.md                     Coordinator system prompt (the detailed prompt)
   .claude/
     settings.json               deny-guards (no PR create/merge, no force/main push) + discovery hook

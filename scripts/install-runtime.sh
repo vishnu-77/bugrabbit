@@ -57,12 +57,12 @@ echo "runtime: installed=$installed unchanged=$unchanged conflicts=$conflicts"
 # learns the gate doesn't run cleanly here.
 echo ""
 echo "-- baseline toolchain health (informational, does not affect install) --"
-ALLOW_EMPTY_GATE=1 bash "$ROOT/scripts/gate.sh" "$TARGET" > /tmp/bug-fixer-baseline-gate.$$ 2>&1
+ALLOW_EMPTY_GATE=1 bash "$ROOT/scripts/gate.sh" "$TARGET" > /tmp/bugrabbit-baseline-gate.$$ 2>&1
 GATE_RC=$?
 if [ "$GATE_RC" -eq 0 ]; then
   echo "  gate.sh: clean baseline"
 else
   echo "  gate.sh: pre-existing issues found (not caused by this install) — see below"
-  grep -E '^(FAIL|warn):' /tmp/bug-fixer-baseline-gate.$$ || true
+  grep -E '^(FAIL|warn):' /tmp/bugrabbit-baseline-gate.$$ || true
 fi
-rm -f /tmp/bug-fixer-baseline-gate.$$
+rm -f /tmp/bugrabbit-baseline-gate.$$

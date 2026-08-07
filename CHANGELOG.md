@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.0.0] — 2026-08-07
+
+Renamed the plugin from `bug-fixer` to **BugRabbit** — "hop to the root cause, patch with
+confidence." No behavioural change to the agents, gate, or workflow; this is a branding + identity
+release.
+
+Breaking:
+- `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: `name` changed
+  `bug-fixer` → `bugrabbit`. The plugin command namespace changes accordingly:
+  `/bug-fixer:<command>` → `/bugrabbit:<command>`. Existing installs should reinstall
+  (`/plugin install <repo>`) to pick up the new slug; any scripts or muscle-memory invoking
+  `/bug-fixer:*` need updating to `/bugrabbit:*`.
+- Release tag prefix changed `bug-fixer--v*` → `bugrabbit--v*` (`.github/workflows/release.yml`).
+
+Unchanged, on purpose:
+- Sub-agent role names (`bug-triager`, `bug-fixer`, `pr-reviewer`, `qa-verifier`) — these describe
+  the specialist's job, not the product, and stay as-is.
+- The underlying GitHub repository path (`vishnu-77/bug-fixer`) — renaming the repo itself is a
+  separate, human-driven action (GitHub repo settings), not part of this plugin-identity change.
+- All agent behaviour, `gate.sh`, backlog/findings schemas, and the git/GitHub protocol in this file.
+
+Added a top-level `README.md` (previously missing) covering install, one-time setup, daily
+commands, and the permission deny-list — pulled from `WORKFLOW.md`, rebranded.
+
 ## [2.1.1] — 2026-08-04
 
 Follow-up to 2.1.0: the new `PARTIAL` status was only wired into `docs/backlog.md` and

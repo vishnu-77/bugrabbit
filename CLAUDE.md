@@ -1,4 +1,4 @@
-# CLAUDE.md — Coordinator brief for the bug-fixing agent system
+# CLAUDE.md — Coordinator brief for BugRabbit, the bug-fixing agent system
 
 This file is the system prompt for the **Coordinator** role at the control-plane root. Sub-agents the Coordinator
 spawns inherit the rules below (the Coordinator embeds the relevant role spec + rules into each Task
@@ -155,8 +155,8 @@ records findings — no branch, no fix.
 
 ## 8. Slash-command surface (`commands/`)
 
-Installed as a plugin, every command below is namespaced `/bug-fixer:<command>` (e.g.
-`/bug-fixer:status`); shorthand `/<command>` is used throughout this doc for brevity.
+Installed as a plugin, every command below is namespaced `/bugrabbit:<command>` (e.g.
+`/bugrabbit:status`); shorthand `/<command>` is used throughout this doc for brevity.
 
 | Command | Purpose |
 |---|---|
