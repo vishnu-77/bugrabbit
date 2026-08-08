@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.2.0] — 2026-08-08
+
+`gate.sh` runs a `gitleaks` secret scan first, language-agnostic, before lint/typecheck/test/build:
+HARD-fails the gate on any finding (`--redact`, so the leaked value itself never hits gate
+output/logs), WARNs and skips if `gitleaks` isn't installed (same pattern as every other tool in the
+gate). Does not count toward the gate's `RAN` tracking — it's an additional check, not a substitute
+for toolchain verification. Verified locally: WARN path confirmed (gitleaks not installed in this
+dev environment); the HARD-fail path was read through, not exercised against a real leaked secret.
+
 ## [3.1.0] — 2026-08-08
 
 Host-agnostic issue/PR adapter: BugRabbit now works against **Bitbucket Cloud** targets, not just

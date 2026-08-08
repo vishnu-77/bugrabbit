@@ -149,7 +149,8 @@ records findings — no branch, no fix.
   and per-repo remotes are prerequisites; `/init-repo` wires them and reports what is missing.
 - **codebase-memory MCP** for structural code discovery (index each target once).
 - **`gate.sh`** auto-detects the target's toolchain (Node/npm, Python, Go, generic) and runs
-  lint → typecheck → test → build; HARD on failure, WARN when a tool is absent.
+  secrets (`gitleaks`, optional) → lint → typecheck → test → build; HARD on failure, WARN when a
+  tool is absent.
 - **CI** runs on a **self-hosted runner with local Claude Code** (no `ANTHROPIC_API_KEY` secret).
 - **Naming:** `kebab-case` for files; branch/commit naming per §3.
 

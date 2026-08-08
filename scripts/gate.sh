@@ -3,6 +3,7 @@
 # gate.sh — language-agnostic local quality gate for the bug-fixing system.
 #
 # Runs, in order, whatever the TARGET repo supports:
+#   (0) secrets     — HARD if gitleaks is installed and finds a leak (runs first, fail-fast)
 #   (a) lint        — HARD if a linter is configured
 #   (b) typecheck   — HARD if a typechecker is configured
 #   (c) test        — HARD if a test script/target exists
@@ -43,6 +44,23 @@ run()  { # run <label> <cmd...> ; HARD on non-zero
 npm_has() { [ -f package.json ] && node -e "process.exit(((require('./package.json').scripts)||{})['$1']?0:1)" 2>/dev/null; }
 
 echo "== gate.sh @ $TARGET =="
+
+# ---- Secrets (gitleaks) ---------------------------------------------------
+# Language-agnostic, runs first: a leaked key is worse than a lint failure. HARD
+# fail on any finding; WARN-and-skip if gitleaks isn't installed (same pattern as
+# every other tool below). Deliberately NOT counted toward RAN — this is an
+# additional gate, not a substitute for the toolchain verification RAN tracks.
+# --redact keeps the actual secret value out of gate output/logs (rule: no
+# secrets in logs — CLAUDE.md #8).
+if have gitleaks; then
+  if gitleaks detect --source . --no-git --redact -v; then
+    ok "gitleaks (no secrets found)"
+  else
+    hard "gitleaks (potential secret(s) found — see output above)"
+  fi
+else
+  warn "gitleaks not installed — secret scan skipped (https://github.com/gitleaks/gitleaks)"
+fi
 
 # ---- Node / npm ----------------------------------------------------------
 if [ -f package.json ]; then
