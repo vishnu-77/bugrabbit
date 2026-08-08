@@ -118,7 +118,11 @@ Skips anything already `DONE`/`SKIPPED` or with an open PR. Ends with one compre
 /review-diff             # your uncommitted changes
 /review-diff main...HEAD # a branch's changes
 ```
-Findings land in `docs/findings.md` as `F-NNN` rows (severity + `file:line` + scenario).
+Findings land in `docs/findings.md` as `F-NNN` rows (severity + `file:line` + scenario +
+`raised`/`updated` timestamps — the audit trail). On an actual PR (`/review-pr`, or CI), findings also
+become real `severity:<level>`/`category:<name>` labels on the PR, best-effort per host — see
+`docs/review-rubric.md` § Labels. `bug-triager` does the same for issues (`severity:<level>` only) at
+triage time.
 
 ### File an issue
 ```

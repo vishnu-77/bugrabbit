@@ -121,26 +121,33 @@ records findings — no branch, no fix.
    (after), and a stated verification. Report `Done / Verified / Not verified / Residual risk`.
 6. **Every finding is anchored.** `pr-reviewer` findings cite `file:line`, a concrete
    failure scenario, and severity; they land in `docs/findings.md` as `F-NNN` rows.
-7. **codebase-memory MCP first** for code discovery (SessionStart protocol): `search_graph`,
+7. **Classification is visible, not just recorded.** Severity (`bug-triager`, `pr-reviewer`) and
+   category (`pr-reviewer`) aren't only ledger columns — the Coordinator applies them as real host
+   labels (`severity:<level>`, `category:<name>`) via `${CLAUDE_PLUGIN_ROOT}/scripts/host.sh issue-label`/`pr-label`,
+   best-effort and host-dependent (see `docs/review-rubric.md` § Labels). Both `docs/backlog.md` and
+   `docs/findings.md` rows also carry `created`/`updated` (`docs/findings.md`: `raised`/`updated`)
+   UTC timestamps — the audit trail of when something was found and how long it sat before its
+   status changed, not just its current state.
+8. **codebase-memory MCP first** for code discovery (SessionStart protocol): `search_graph`,
    `trace_path`, `get_code_snippet`, `search_code`. Fall back to Grep/Glob/Read only for non-code
    files. If the target repo is not indexed, run `index_repository` first.
-8. **No secrets** in logs, diffs, examples, commits, or findings. Never commit `.env`, keys, tokens.
-9. **Pinned tooling in CI**, never floating `latest` for actions/images in `bug-finder.yml`.
-10. **Gate green before review.** `bug-fixer` must reach `gate.sh` green before `pr-reviewer` /
+9. **No secrets** in logs, diffs, examples, commits, or findings. Never commit `.env`, keys, tokens.
+10. **Pinned tooling in CI**, never floating `latest` for actions/images in `bug-finder.yml`.
+11. **Gate green before review.** `bug-fixer` must reach `gate.sh` green before `pr-reviewer` /
     `qa-verifier` are dispatched on a fix.
-11. **Clean boundary per fix.** `git status` clean and the branch pushed before the next fix; surface
+12. **Clean boundary per fix.** `git status` clean and the branch pushed before the next fix; surface
     the branch name + commit set. Never batch unrelated fixes into one branch.
-12. **CI reviews, never merges.** `bug-finder.yml` posts findings on `pull_request`/`push`; it never
+13. **CI reviews, never merges.** `bug-finder.yml` posts findings on `pull_request`/`push`; it never
     merges, force-pushes, or writes to `main`. `ci-guard.sh` fails the job if it tries.
-13. **Idempotency + dedup.** All durable state is keyed by **`owner/repo#issue`**. Never mint a second
+14. **Idempotency + dedup.** All durable state is keyed by **`owner/repo#issue`**. Never mint a second
     `FIX-NNN` row for that composite key; never create a second `fix/<#>-*` branch in that repository;
     never redo `DONE`/`SKIPPED` work. `/work-issue`, `/autofix-issues`, and `poll-issues.sh` all
     check-before-write. `docs/issue-log.md` is the append-only seen set; `/status-check`
     detects and reconciles `DUP-ROW` / `DUP-BRANCH` / `ORPHAN-ROW` / `UNTRACKED` / `DRIFT-STATUS`.
-14. **The cron tracks, never fixes.** `/watch-issues setup` schedules `poll-issues.sh` to record new
+15. **The cron tracks, never fixes.** `/watch-issues setup` schedules `poll-issues.sh` to record new
     live issues into `docs/issue-log.md` and notify; fixing is always an explicit `/work-issue` /
     `/autofix-issues`.
-15. **Scripts are thin helpers.** `${CLAUDE_PLUGIN_ROOT}/scripts/*` only gather/summarise/guard — never hold fix or
+16. **Scripts are thin helpers.** `${CLAUDE_PLUGIN_ROOT}/scripts/*` only gather/summarise/guard — never hold fix or
     review judgement (that lives in the agents + `docs/review-rubric.md` + `docs/fix-playbook.md`).
 
 ---

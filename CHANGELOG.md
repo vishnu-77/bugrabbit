@@ -1,5 +1,39 @@
 # Changelog
 
+## [3.5.0] — 2026-08-08
+
+Host-label classifier + ledger timestamps — an audit-trail pass. See
+`docs/adr/0004-label-classifier-and-ledger-timestamps.md` for full rationale.
+
+Added:
+- `host.sh issue-label`/`pr-label` ops (GitHub: `gh api`, auto-creates unknown labels; GitLab:
+  `add_labels`, same auto-create; Bitbucket: no-op + note, no label concept there).
+- `bug-triager` labels the issue `severity:<level>` at triage time; `pr-reviewer` labels the PR
+  `severity:<max>` + one `category:<c>` per distinct category, on `/review-pr` and in CI
+  (`bug-finder.yml`, `bitbucket-pipelines.yml` — a best-effort grep over the review's markdown table,
+  since CI has no structured agent Return to read).
+- `docs/backlog.md` rows: `created`/`updated` UTC columns. `docs/findings.md` rows: `raised`/`updated`.
+  Carried through by `/archive-task` into `docs/backlog-archive.md`, not dropped.
+- `/status-check`'s `STALE-DONE`/`STALE-PARTIAL` now reports how stale, using `updated`.
+
+Fixed in the same pass: `CLAUDE.md` §6 rule numbers shifted (a new rule 7 was inserted) — updated the
+two places that pointed at the old numbers by number (`scripts/gate.sh`'s comment, `docs/findings.md`'s
+cross-reference) rather than by name. `commands/review-pr.md` gained a new step 5 (labeling), so its
+own internal "step 5" self-reference and `docs/findings.md`'s "`/review-pr` step 5" reference both
+became step 6 — fixed. Historical CHANGELOG entries citing the old rule numbers are left as-is,
+same policy as the 3.0.0 rename: they're accurate to what CLAUDE.md said at the time.
+
+Real bug caught during verification, fixed before landing: the CI label-extraction step originally
+grepped whole markdown-table *rows* for known severity/category words, which false-positived
+`category:regression` on a review whose only real categories were `correctness`/`tests` — the word
+"regression" appeared inside an unrelated suggested-fix sentence ("add a regression test"). Fixed by
+reading the severity/category *columns* by position instead of the whole row text; re-verified
+against both a real findings table and a clean/empty-review table.
+
+Known gaps: labeling and the timestamp-stamping commands were not exercised against a live issue/PR
+in this change (the column-parsing logic itself was tested standalone, not through a real `gh`/GitLab
+call) — see the ADR's Consequences section for exactly what's unverified.
+
 ## [3.4.0] — 2026-08-08
 
 GitLab adapter, Bitbucket CI template, and dependency/SAST/SBOM scanning in `gate.sh`. See

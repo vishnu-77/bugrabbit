@@ -62,6 +62,23 @@ case "$OP" in
     [ -n "$LABEL" ] && ARGS+=(--label "$LABEL")
     gh issue create "${ARGS[@]}" ;;
 
+  issue-label|pr-label)
+    # GitHub PRs are issues under the hood, so both ops hit the same labels endpoint.
+    need_gh
+    NUM="$1"; shift
+    LABELS=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --label) LABELS+=("$2"); shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    [ "${#LABELS[@]}" -gt 0 ] || { echo "FAIL: at least one --label required" >&2; exit 2; }
+    ARGS=(-X POST "repos/$SLUG/issues/$NUM/labels")
+    for l in "${LABELS[@]}"; do ARGS+=(-f "labels[]=$l"); done
+    # `gh api` on this endpoint auto-creates any label name that doesn't already exist in the repo.
+    gh api "${ARGS[@]}" >/dev/null && echo "ok: labeled #$NUM with ${LABELS[*]}" ;;
+
   pr-diff)
     need_gh
     gh pr diff "$1" -R "$SLUG" ;;

@@ -18,10 +18,15 @@
 #   issue-list [--state open|all] [--label L] [--search Q]   — prints TSV: number\tstate\ttitle
 #   issue-state <#>        — prints normalized "open" or "closed"
 #   issue-create --title T [--body B] [--label L]
+#   issue-label <#> --label L [--label L2 ...]   — add labels to an existing issue (auto-creates the
+#                                                   label where the host supports it; no-op + note on
+#                                                   Bitbucket, which has no issue-label concept)
 #   pr-diff <#>
 #   pr-view <#>
 #   pr-list [--state open]  — prints TSV: number\tstate\ttitle\tbranch
 #   pr-comment <#> --body-file F
+#   pr-label <#> --label L [--label L2 ...]      — add labels to an existing PR/MR (same caveats as
+#                                                   issue-label)
 #
 set -uo pipefail
 

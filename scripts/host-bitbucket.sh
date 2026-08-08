@@ -104,6 +104,20 @@ case "$OP" in
     PAYLOAD="$(jq -n --arg t "$TITLE" --arg b "$BODY" '{title:$t, content:{raw:$b}}')"
     bb_api POST "$API/issues" "$PAYLOAD" | jq -r '"created: #\(.id) \(.title)"' ;;
 
+  issue-label|pr-label)
+    # Bitbucket Cloud has no label concept for issues or PRs — accept and no-op, same pattern as
+    # --label on issue-create/issue-list, so callers don't need a host-specific branch.
+    NUM="${1:-}"; [ -n "$NUM" ] && shift
+    LABELS=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --label) LABELS+=("$2"); shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    echo "note: Bitbucket has no label equivalent for issues or PRs; ignoring ${LABELS[*]:-}" >&2
+    echo "ok" ;;
+
   pr-diff)
     need_auth
     curl -sS -f -u "$BUGRABBIT_BB_USER:$BUGRABBIT_BB_TOKEN" "$API/pullrequests/$1/diff" || {

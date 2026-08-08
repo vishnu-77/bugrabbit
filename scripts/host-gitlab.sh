@@ -103,6 +103,39 @@ case "$OP" in
       '{title:$t, description:$b} + (if $l != "" then {labels:$l} else {} end)')"
     gl_api POST "$API/issues" "$PAYLOAD" | jq -r '"created: #\(.iid) \(.title)"' ;;
 
+  issue-label)
+    need_auth
+    NUM="$1"; shift
+    LABELS=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --label) LABELS+=("$2"); shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    [ "${#LABELS[@]}" -gt 0 ] || { echo "FAIL: at least one --label required" >&2; exit 2; }
+    JOINED="$(IFS=,; echo "${LABELS[*]}")"
+    # GitLab's add_labels creates any label name not already present in the project.
+    PAYLOAD="$(jq -n --arg l "$JOINED" '{add_labels:$l}')"
+    gl_api PUT "$API/issues/$NUM" "$PAYLOAD" >/dev/null
+    echo "ok: labeled #$NUM with $JOINED" ;;
+
+  pr-label)
+    need_auth
+    NUM="$1"; shift
+    LABELS=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --label) LABELS+=("$2"); shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    [ "${#LABELS[@]}" -gt 0 ] || { echo "FAIL: at least one --label required" >&2; exit 2; }
+    JOINED="$(IFS=,; echo "${LABELS[*]}")"
+    PAYLOAD="$(jq -n --arg l "$JOINED" '{add_labels:$l}')"
+    gl_api PUT "$API/merge_requests/$NUM" "$PAYLOAD" >/dev/null
+    echo "ok: labeled #$NUM with $JOINED" ;;
+
   pr-diff)
     need_auth
     # GitLab content-negotiates a raw unified diff via a .diff suffix on the MR endpoint.

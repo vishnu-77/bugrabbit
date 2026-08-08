@@ -57,6 +57,21 @@ pipelines:
                   cat /tmp/review.out
                 } > /tmp/review.comment
                 bash .claude/scripts/host.sh pr-comment "$BITBUCKET_PR_ID" --body-file /tmp/review.comment
+                # Best-effort classifier (mirrors bug-finder.yml, same column-based extraction to
+                # avoid false-positive matches on category words inside prose columns): no-ops with
+                # a note on Bitbucket today (host-bitbucket.sh has no label equivalent), kept here so
+                # the step is a no-op away from working the moment Bitbucket labels are supported.
+                ROWS="$(grep -E '^\|' /tmp/review.out || true)"
+                SEV_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$3); print tolower($3)}' | grep -vE '^(severity|-*)$' || true)"
+                CAT_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$4); print tolower($4)}' | grep -vE '^(category|-*)$' || true)"
+                LABEL_ARGS=()
+                for sev in critical high medium low; do
+                  echo "$SEV_COL" | grep -qxw "$sev" && { LABEL_ARGS+=(--label "severity:$sev"); break; }
+                done
+                for cat in correctness regression security efficiency tests; do
+                  echo "$CAT_COL" | grep -qxw "$cat" && LABEL_ARGS+=(--label "category:$cat")
+                done
+                [ "${#LABEL_ARGS[@]}" -gt 0 ] && bash .claude/scripts/host.sh pr-label "$BITBUCKET_PR_ID" "${LABEL_ARGS[@]}"
               else
                 echo "empty diff — nothing to review"
               fi
