@@ -29,7 +29,7 @@ bugrabbit/                      (plugin root)
     scripts/ gate.sh · repo-status.sh · find-bugs.sh · ci-guard.sh · poll-issues.sh ·
              host.sh · host-github.sh · host-bitbucket.sh
   docs/
-    agent-system-plan.md (this) · backlog.md · findings.md · issue-log.md
+    agent-system-plan.md (this) · backlog.md · findings.md · issue-log.md · bugrabbit-memory.md
     review-rubric.md · fix-playbook.md · templates/{fix-task,review-report}.md · adr/
   .github/workflows/bug-finder.yml   TEMPLATE (copied into each target by /init-repo)
 ```

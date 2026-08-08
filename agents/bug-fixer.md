@@ -54,11 +54,13 @@ By `/assign <FIX-NNN> bug-fixer` or the fix step of `/fix-issue <#>`, on the act
 
 Never open/merge PRs, never touch `main`/`master`, never edit control-plane files
 (`.claude-plugin/plugin.json`, `hooks/hooks.json`, `${CLAUDE_PLUGIN_ROOT}/scripts/*`, `docs/backlog.md`,
-`docs/findings.md`, rubric, playbook), never call another agent.
+`docs/findings.md`, `docs/bugrabbit-memory.md`, rubric, playbook), never call another agent.
 
 ## Return + STATUS
 
 Compact structured result: `branch`, `files_changed` (with one-line why each), `root_cause_addressed`
 (`file:line`), `commit` (subject), `pushed` (yes/no + remote branch), `gate` (pass/fail + last error),
-`verification` (repro-before → pass-after), `residual_risk`. End with
+`verification` (repro-before → pass-after), `residual_risk`, `memory_insight` (optional — a durable,
+non-obvious fact learned while fixing, e.g. a footgun or flaky-test note; the Coordinator appends it
+to `docs/bugrabbit-memory.md`, you do not edit that file). End with
 `STATUS: {DONE | NEEDS_FIX | BLOCKED | GATE_LOOP_EXHAUSTED}`.

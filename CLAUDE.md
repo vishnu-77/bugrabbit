@@ -35,7 +35,9 @@ This terminal is the Coordinator. Responsibilities:
 
 - Own the **once-only / control-plane files**: `.claude-plugin/plugin.json`, `hooks/hooks.json`,
   `${CLAUDE_PLUGIN_ROOT}/scripts/*`, `docs/review-rubric.md`, `docs/fix-playbook.md`,
-  `docs/backlog.md`, `docs/findings.md`, ADRs. Never let a sub-agent edit these.
+  `docs/backlog.md`, `docs/findings.md`, `docs/bugrabbit-memory.md`, ADRs. Never let a sub-agent
+  edit these — a `memory_insight` in an agent's Return is the Coordinator's cue to append a row,
+  same as a `fix_task` cues a `FIX-NNN` row.
 - **Resolve + validate the target repo** from the enclosing Git root before any mutation. Honor an
   explicit `/set-repo` override when present; block only when neither can resolve a repository.
 - Decompose each issue into **one backlog row per fix** in `docs/backlog.md` (`FIX-NNN`), pre-identifying
@@ -185,6 +187,8 @@ Installed as a plugin, every command below is namespaced `/bugrabbit:<command>` 
 
 - `docs/agent-system-plan.md` — full design + delivery model.
 - `docs/backlog.md` / `docs/backlog-archive.md` / `docs/findings.md` — task + finding state (source of truth).
+- `docs/bugrabbit-memory.md` — durable cross-fix insights about the target repo (architecture facts,
+  recurring root causes, footguns). `bug-triager`/`bug-fixer` read it first, append sparingly.
 - `docs/issue-log.md` — cron seen set (dedup by `owner/repo#issue`); populated by `poll-issues.sh`.
 - `docs/review-rubric.md` — what `pr-reviewer` checks (the keystone for review quality).
 - `docs/fix-playbook.md` — the root-cause fix workflow the `bug-fixer` follows.

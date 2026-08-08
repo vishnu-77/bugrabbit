@@ -18,5 +18,6 @@ changes, no branch.
 4. On return, if `STATUS: DONE`, append a `FIX-NNN` row to `docs/backlog.md` (repository, issue #,
    title, severity, root-cause `file:line`, status `READY`) using `docs/templates/fix-task.md` for the task
    body. If `STATUS: BLOCKED`, record the blocker and the triager's smallest question; do not mint a
-   fix row.
+   fix row. If the Return includes `memory_insight`, append one row to `docs/bugrabbit-memory.md`
+   (both control-plane files, Coordinator-owned — the agent never edits them directly).
 5. Announce the `FIX-NNN` id and severity. Do not start a fix — that is `/fix-issue` or `/assign`.

@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.3.0] — 2026-08-08
+
+Three named practices folded into `docs/fix-playbook.md`, plus a new cross-fix memory ledger.
+
+Added:
+- `docs/bugrabbit-memory.md` — durable, cross-fix insights about a target repo (architecture facts,
+  recurring root causes, footguns, flaky-test notes). Coordinator-owned control-plane file, same
+  write model as `docs/backlog.md`/`docs/findings.md`: agents surface an optional `memory_insight`
+  in their Return, the Coordinator appends the row — agents never edit it directly.
+- **Harness engineering** (playbook step 1): reproduction must be a runnable artifact (script/failing
+  test), not prose steps — reused as both the before/after evidence and `qa-verifier`'s test seed.
+- **Graph engineering** (playbook step 2): `trace_path` walked both directions (callers for blast
+  radius, callees for depth) until the cause site has no simpler upstream explanation.
+- **Loop engineering** (playbook step 4): every bounded corrective loop (gate.sh cap 5, review-fix
+  cap 3) now also terminates early on a stalled signal — identical failure two iterations running
+  aborts rather than burning the rest of the cap.
+- Playbook step 0 (check memory before starting) and step 7 (surface memory sparingly after).
+
+Changed: `CLAUDE.md` (§2 control-plane file list, §9 reference list), `bug-triager.md`/`bug-fixer.md`
+(`memory_insight` in Return + Inputs), `commands/triage-issue.md`/`work-issue.md` (Coordinator
+appends the row on return), `docs/agent-system-plan.md` layout diagram.
+
 ## [3.2.0] — 2026-08-08
 
 `gate.sh` runs a `gitleaks` secret scan first, language-agnostic, before lint/typecheck/test/build:
