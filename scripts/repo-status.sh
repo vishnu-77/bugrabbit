@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # repo-status.sh — summarise docs/backlog.md (FIX-NNN rows) by status, and, if the active repo's
-# host (GitHub or Bitbucket, via scripts/host.sh) is authed, its open auto-fix issues and open PRs.
+# host (via scripts/host.sh) is authed, its open auto-fix issues and open PRs.
 #
 # Usage: repo-status.sh [TARGET_DIR]
 #   TARGET_DIR (optional) — active target repo for the tracker half. Default: $VP_ACTIVE_REPO.

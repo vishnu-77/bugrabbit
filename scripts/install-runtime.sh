@@ -8,23 +8,35 @@ source "$ROOT/scripts/resolve-repo.sh"
 TARGET="$(resolve_repo "${1:-}")" || exit $?
 FORCE="${2:-}"
 
-# src (this plugin's layout) : dst (target repo's .claude/ layout — bug-finder.yml expects its
-# companion files there regardless of how the plugin itself is organised).
+# src (this plugin's layout) : dst (target repo's .claude/ layout — the CI templates below expect
+# their companion files there regardless of how the plugin itself is organised).
 FILES=(
   "runtime-version:.claude/runtime-version"
   "agents/pr-reviewer.md:.claude/agents/pr-reviewer.md"
   "scripts/ci-guard.sh:.claude/scripts/ci-guard.sh"
   "scripts/ci-pr-meta-check.sh:.claude/scripts/ci-pr-meta-check.sh"
+  "scripts/resolve-repo.sh:.claude/scripts/resolve-repo.sh"
+  "scripts/host.sh:.claude/scripts/host.sh"
   "docs/review-rubric.md:docs/review-rubric.md"
 )
 
-# bug-finder.yml is a GitHub Actions template — only meaningful on a GitHub-hosted target. No
-# Bitbucket Pipelines equivalent exists yet (see docs/adr/0002-host-agnostic-issue-pr-adapter.md).
-if [ "$(VP_ACTIVE_REPO="$TARGET" "$ROOT/scripts/host.sh" detect)" = "github" ]; then
-  FILES+=(".github/workflows/bug-finder.yml:.github/workflows/bug-finder.yml")
-else
-  echo "skipped: .github/workflows/bug-finder.yml (no CI template for this host yet — everything else installs normally)"
-fi
+# The CI template + its host.sh backend are host-specific — install whichever one the target
+# actually uses (see docs/adr/0002-host-agnostic-issue-pr-adapter.md,
+# docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md). GitLab CI has no template yet.
+CI_HOST="$(VP_ACTIVE_REPO="$TARGET" "$ROOT/scripts/host.sh" detect)"
+case "$CI_HOST" in
+  github)
+    FILES+=(".github/workflows/bug-finder.yml:.github/workflows/bug-finder.yml")
+    FILES+=("scripts/host-github.sh:.claude/scripts/host-github.sh")
+    ;;
+  bitbucket)
+    FILES+=("bitbucket-pipelines.yml:bitbucket-pipelines.yml")
+    FILES+=("scripts/host-bitbucket.sh:.claude/scripts/host-bitbucket.sh")
+    ;;
+  *)
+    echo "skipped: CI template (no template for host '$CI_HOST' yet — everything else installs normally)"
+    ;;
+esac
 
 installed=0
 unchanged=0

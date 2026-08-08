@@ -26,7 +26,7 @@ forbidden_cmd() {
 
 case "${1:-assert}" in
   assert)
-    BR="${GITHUB_HEAD_REF:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
+    BR="${GITHUB_HEAD_REF:-${BITBUCKET_BRANCH:-${CI_COMMIT_REF_NAME:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}}}"
     if echo "$BR" | grep -qE "$PROTECTED_RE"; then
       echo "CI-GUARD FAIL: refusing to run a mutating job on protected branch '$BR'." >&2
       exit 3

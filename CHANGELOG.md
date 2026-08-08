@@ -1,5 +1,37 @@
 # Changelog
 
+## [3.4.0] — 2026-08-08
+
+GitLab adapter, Bitbucket CI template, and dependency/SAST/SBOM scanning in `gate.sh`. See
+`docs/adr/0003-gitlab-adapter-bitbucket-ci-and-gate-security-scans.md` for full rationale, including
+what was explicitly declined (DAST, true cross-repo reasoning, ephemeral microVMs, CI/CD-integrated
+temporal debugging) and why.
+
+Added:
+- `scripts/host-gitlab.sh` — third `host.sh` backend (GitLab REST v4, same 10-op contract, no
+  merge/create-PR op). Auth via `BUGRABBIT_GL_TOKEN`. `host.sh detect` now matches `gitlab.com`.
+- `bitbucket-pipelines.yml` — Bitbucket Pipelines CI template, mirrors `bug-finder.yml`'s
+  guard→pr-meta-check→diff→review→comment shape. `install-runtime.sh` installs it (+ the
+  `host-bitbucket.sh` backend into `.claude/scripts/`) on Bitbucket targets.
+- `gate.sh`: `osv-scanner` (dependency/SCA, HARD on a known-vulnerable dependency), `semgrep` (SAST,
+  HARD on a rule match, respects a target's own `.semgrep.yml`/`.semgrep/`), `syft` (SBOM,
+  informational-only, written to a temp file — never left in the target tree). All three optional
+  installs, same WARN-if-absent pattern as `gitleaks`.
+
+Fixed (found while building the above, both real bugs, not scope extensions):
+- `gate.sh`'s security scanners (including the `gitleaks` step shipped in 3.2.0) treated *any*
+  nonzero exit as "found something" and hard-failed the gate. Live-testing `semgrep` here hit a
+  Windows encoding crash (exit 2) that got wrongly reported as a finding. All four scanners now
+  share a `sec_scan` helper: exit 1 = real finding (HARD), any other nonzero = tool/config error
+  (WARN) — a crashing scanner isn't a security result.
+- `ci-guard.sh`/`ci-pr-meta-check.sh` only read GitHub's branch env vars before falling back to
+  local git, which resolves to a detached `HEAD` on Bitbucket Pipelines — silently defeating the
+  protected-branch guard there. Both now also read Bitbucket's and GitLab CI's equivalents.
+
+Known gaps: none of `host-gitlab.sh`, `osv-scanner`, `semgrep`'s HARD-fail path, or `syft` were
+exercised against a real finding/live host (no GitLab repo available; `gitleaks`/`osv-scanner`/`syft`
+aren't installed in this dev environment). Syntax-checked; `semgrep`'s WARN path was live-verified.
+
 ## [3.3.1] — 2026-08-08
 
 Clarified and extended (no behavior reversal — confirmed with the user): findings were already

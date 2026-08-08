@@ -22,10 +22,10 @@ It is designed to live inside any Git repository and automatically targets that 
 the only tree the agents touch. The full design is
 `docs/agent-system-plan.md`.
 
-**The active repo's host is the source of truth** (issues + PRs) — GitHub or Bitbucket Cloud today
-(via `scripts/host.sh`, see `docs/adr/0002-host-agnostic-issue-pr-adapter.md`), GitLab planned. No
-Jira. Every unit of work traces to a repository-qualified issue key (`owner/repo#N`) and a `FIX-NNN`
-backlog row.
+**The active repo's host is the source of truth** (issues + PRs) — GitHub, Bitbucket Cloud, or GitLab
+(via `scripts/host.sh`, see `docs/adr/0002-host-agnostic-issue-pr-adapter.md` and
+`docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md`). No Jira. Every unit of work traces to a
+repository-qualified issue key (`owner/repo#N`) and a `FIX-NNN` backlog row.
 
 ---
 
@@ -147,12 +147,13 @@ records findings — no branch, no fix.
 
 ## 7. Technology baseline
 
-- **`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh`** (GitHub via `gh`, Bitbucket Cloud via REST v2.0) + **git**. Host auth
-  and per-repo remotes are prerequisites; `/init-repo` wires them and reports what is missing.
+- **`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh`** (GitHub via `gh`, Bitbucket Cloud + GitLab via REST) + **git**. Host
+  auth and per-repo remotes are prerequisites; `/init-repo` wires them and reports what is missing.
 - **codebase-memory MCP** for structural code discovery (index each target once).
 - **`gate.sh`** auto-detects the target's toolchain (Node/npm, Python, Go, generic) and runs
-  secrets (`gitleaks`, optional) → lint → typecheck → test → build; HARD on failure, WARN when a
-  tool is absent.
+  secrets (`gitleaks`) → deps (`osv-scanner`) → SAST (`semgrep`) → SBOM (`syft`, informational) →
+  lint → typecheck → test → build; HARD on failure, WARN when a tool is absent — all four security
+  scanners are optional installs, see docs/adr/0003.
 - **CI** runs on a **self-hosted runner with local Claude Code** (no `ANTHROPIC_API_KEY` secret).
 - **Naming:** `kebab-case` for files; branch/commit naming per §3.
 

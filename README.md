@@ -10,8 +10,8 @@ repository. It does two things:
 - **Find bugs in every PR/commit** — a review pass locally (`/review-pr`, `/review-diff`) and in CI
   (`bug-finder.yml` on every PR/push, GitHub targets today).
 
-The active repo's host is the source of truth (issues + PRs) — GitHub or Bitbucket Cloud today, via
-`scripts/host.sh`. One target repo per session. Durable state is keyed by `owner/repo#issue`, so
+The active repo's host is the source of truth (issues + PRs) — GitHub, Bitbucket Cloud, or GitLab,
+via `scripts/host.sh`. One target repo per session. Durable state is keyed by `owner/repo#issue`, so
 equal issue numbers in different repositories never collide.
 
 The design lives in `docs/agent-system-plan.md`; the rules the agents follow live in `CLAUDE.md`;
@@ -38,6 +38,8 @@ Then bootstrap a target repository:
 gh auth login                # GitHub target: GitHub CLI, prerequisite
 # or, for a Bitbucket Cloud target:
 export BUGRABBIT_BB_USER=<username> BUGRABBIT_BB_TOKEN=<atlassian-api-token>
+# or, for a GitLab target:
+export BUGRABBIT_GL_TOKEN=<personal-or-project-access-token>
 /bugrabbit:init-repo <repo-path>
 ```
 

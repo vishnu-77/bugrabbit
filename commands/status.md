@@ -11,6 +11,6 @@ Read-only summary. Uses the enclosing Git repository or the `/set-repo` override
    still `open`.
 3. **Tracker (if the active repo's host is authed).** For the active repo: open issues labelled
    `auto-fix` and open PRs — both surfaced by `${CLAUDE_PLUGIN_ROOT}/scripts/repo-status.sh` via `scripts/host.sh`
-   (GitHub or Bitbucket, auto-detected).
+   (any supported host, auto-detected).
 4. Print a compact table and name the next unblocked action (e.g. "triage issue #12" or
    "fix FIX-003"). No mutations.

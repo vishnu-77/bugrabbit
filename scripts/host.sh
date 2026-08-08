@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 #
-# host.sh — dispatcher for issue/PR operations against the active repo's host (GitHub or Bitbucket
-# Cloud today; see docs/adr/0002-host-agnostic-issue-pr-adapter.md). Detects the host from the
-# origin remote (override with VP_HOST=github|bitbucket for Enterprise/Server domains that don't
-# string-match) and forwards to scripts/host-<host>.sh. Acts on $VP_ACTIVE_REPO / the enclosing git
-# repo — same resolution as every other BugRabbit script (see resolve-repo.sh).
+# host.sh — dispatcher for issue/PR operations against the active repo's host (GitHub, Bitbucket
+# Cloud, or GitLab; see docs/adr/0002-host-agnostic-issue-pr-adapter.md and
+# docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md). Detects the host from the origin remote
+# (override with VP_HOST=github|bitbucket|gitlab for Enterprise/Server/self-hosted domains that
+# don't string-match) and forwards to scripts/host-<host>.sh. Acts on $VP_ACTIVE_REPO / the
+# enclosing git repo — same resolution as every other BugRabbit script (see resolve-repo.sh).
 #
 # No op here ever opens or merges a PR — that capability simply doesn't exist in this contract,
 # which is what keeps "agents never open/merge PRs" true across hosts without per-host deny-guards.
@@ -38,6 +39,7 @@ detect_host() {
   case "$url" in
     *github.com*) echo github ;;
     *bitbucket.org*) echo bitbucket ;;
+    *gitlab.com*) echo gitlab ;;
     *) echo unknown ;;
   esac
 }

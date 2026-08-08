@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# poll-issues.sh — cron helper. Poll the active repo's open issues (GitHub or Bitbucket, via
-# scripts/host.sh) and record any NOT yet tracked into docs/issue-log.md (the "seen" ledger).
+# poll-issues.sh — cron helper. Poll the active repo's open issues (any host scripts/host.sh
+# supports) and record any NOT yet tracked into docs/issue-log.md (the "seen" ledger).
 # Idempotent + dedup: an owner/repo#issue key already present in the ledger is never appended again.
 # Prints the count of newly-seen issues.
 #
@@ -23,7 +23,7 @@ VP_ACTIVE_REPO="$TARGET" "$HOST_SH" auth-status >/dev/null || exit 2
 # Seed the ledger if missing.
 if [ ! -f "$LOG" ]; then
   {
-    echo "# Issue log — cron-tracked issues (GitHub or Bitbucket; seen set)"
+    echo "# Issue log — cron-tracked issues (seen set)"
     echo
     echo "Append-only. Dedup key: owner/repo#issue. Status: UNTRIAGED | TRIAGED | WORKING | DONE | SKIPPED."
     echo "Populated by \`scripts/poll-issues.sh\` (cron) and updated by /work-issue, /status-check."

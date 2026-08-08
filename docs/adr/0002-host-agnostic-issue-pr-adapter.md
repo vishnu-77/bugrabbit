@@ -29,7 +29,8 @@ asked for Bitbucket support to make that claim actually true.
   future backend, without needing a per-host deny-pattern to maintain (`ci-guard.sh`'s literal
   `gh pr merge`/`gh pr create` denies remain only as defense-in-depth for humans running raw `gh`
   locally).
-- **Scope for v1:** GitHub full parity + Bitbucket Cloud issue+PR read/write. Explicitly deferred:
+- **Scope for v1:** GitHub full parity + Bitbucket Cloud issue+PR read/write. Explicitly deferred
+  (both items below were later picked up — see [0003](0003-gitlab-adapter-bitbucket-ci-and-gate-security-scans.md)):
   - A `bitbucket-pipelines.yml` CI template — the CI event-model port (trigger semantics, context
     variables, runner equivalents) is a materially bigger, separate lift than the read/write
     adapter, and nothing in `/work-issue`/`/review-pr`/`/status` requires it. `/init-repo` on a

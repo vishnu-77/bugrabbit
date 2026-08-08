@@ -7,7 +7,8 @@
 #
 # Prerequisites in the target repo:
 #   - a self-hosted runner labelled `claude` with the `claude` CLI installed + authed
-#   - `.claude/agents/pr-reviewer.md` + `docs/review-rubric.md` present (copied by /init-repo)
+#   - `.claude/agents/pr-reviewer.md`, `docs/review-rubric.md`, `.claude/scripts/{host,host-github,
+#     resolve-repo}.sh` present (copied by /init-repo)
 #
 # Forked PRs are skipped because the diff is untrusted input to an AI process on a self-hosted runner.
 
@@ -95,4 +96,4 @@ jobs:
             echo "## 🐞 bug-finder review"
             cat /tmp/review.out
           } > /tmp/review.comment
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/review.comment
+          bash .claude/scripts/host.sh pr-comment "${{ github.event.pull_request.number }}" --body-file /tmp/review.comment

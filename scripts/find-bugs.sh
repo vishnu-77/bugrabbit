@@ -5,7 +5,7 @@
 # This script only GATHERS inputs and invokes the reviewer; all judgement lives in the agent + rubric.
 #
 # Usage:
-#   find-bugs.sh pr   <pr-number>         # review a PR (via scripts/host.sh — GitHub or Bitbucket)
+#   find-bugs.sh pr   <pr-number>         # review a PR (via scripts/host.sh — any supported host)
 #   find-bugs.sh range <base>..<head>     # review a commit range
 #   find-bugs.sh diff                     # review the working tree (default)
 #
