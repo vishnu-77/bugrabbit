@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s\\n' \"CRITICAL - bug-fixer plugin session: read ${CLAUDE_PLUGIN_ROOT}/CLAUDE.md now for the full Coordinator brief (a plugin root CLAUDE.md is not auto-loaded as context). Code Discovery Protocol: use codebase-memory-mcp tools FIRST for code exploration (search_graph, trace_path, get_code_snippet, search_code). Fall back to Grep/Glob/Read only for non-code files. If a target repo is not indexed, run index_repository FIRST.\""
+            "command": "printf '%s\\n' \"CRITICAL - BugRabbit plugin session: read ${CLAUDE_PLUGIN_ROOT}/CLAUDE.md now for the full Coordinator brief (a plugin root CLAUDE.md is not auto-loaded as context). Code Discovery Protocol: use codebase-memory-mcp tools FIRST for code exploration (search_graph, trace_path, get_code_snippet, search_code). Fall back to Grep/Glob/Read only for non-code files. If a target repo is not indexed, run index_repository FIRST.\""
           }
         ]
       }

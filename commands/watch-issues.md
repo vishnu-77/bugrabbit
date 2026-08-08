@@ -1,5 +1,5 @@
 ---
-description: Set up or run the cron that polls GitHub for new (unchecked) issues and tracks them.
+description: Set up or run the cron that polls the tracker for new (unchecked) issues and tracks them.
 argument-hint: "[run | setup <cron>] (default: run once)"
 ---
 
@@ -16,6 +16,8 @@ dedups by `owner/repo#issue` into `docs/issue-log.md`.
   2. records new open issues as `UNTRIAGED` in `docs/issue-log.md` (dedup by repository + issue),
   3. if new `auto-fix`-labelled issues appeared, notifies (PushNotification) with the count and asks
      whether to run `/autofix-issues` — it does **not** auto-fix without confirmation.
-  Announce the routine id and schedule. `setup` requires `gh` authed.
+  Announce the routine id and schedule. `setup` requires the active repo's host to be authenticated
+  (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh auth-status` — `gh` for GitHub, `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN` for
+  Bitbucket).
 
 The cron only **tracks** live issues; fixing is always an explicit `/work-issue` or `/autofix-issues`.

@@ -16,7 +16,7 @@ pipeline is `/fix-issue`.
 3. Spawn via the Task tool with **`model: sonnet`**, embedding (the harness does NOT auto-load
    `${CLAUDE_PLUGIN_ROOT}/agents/*`):
    - the agent's spec from `${CLAUDE_PLUGIN_ROOT}/agents/<agent>.md` **verbatim**,
-   - the full `fix-task` from the `FIX-NNN` row + the GitHub issue number,
+   - the full `fix-task` from the `FIX-NNN` row + the tracker issue number,
    - the **active repo absolute path**,
    - the relevant reference doc (`bug-triager`/`bug-fixer` → `docs/fix-playbook.md`;
      `pr-reviewer` → `docs/review-rubric.md`).

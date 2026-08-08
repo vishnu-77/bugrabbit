@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
-# ci-guard.sh — defensive validation helper. GitHub token permissions and runner isolation remain
-# the actual security boundary; this script catches obvious protected-branch mistakes.
+# ci-guard.sh — defensive validation helper. Host token permissions and runner isolation remain
+# the actual security boundary; this script catches obvious protected-branch mistakes. The `gh pr
+# merge`/`gh pr create` literals below are defense-in-depth for humans running raw `gh` locally —
+# scripts/host.sh (the sanctioned mutation path for agents) structurally never exposes a
+# merge/create-PR op on any host, so there's no Bitbucket-equivalent pattern to add here.
 #
 # Usage:
 #   ci-guard.sh assert            # assert we are NOT on/targeting main/master; exit non-zero if so
@@ -23,7 +26,7 @@ forbidden_cmd() {
 
 case "${1:-assert}" in
   assert)
-    BR="${GITHUB_HEAD_REF:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
+    BR="${GITHUB_HEAD_REF:-${BITBUCKET_BRANCH:-${CI_COMMIT_REF_NAME:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}}}"
     if echo "$BR" | grep -qE "$PROTECTED_RE"; then
       echo "CI-GUARD FAIL: refusing to run a mutating job on protected branch '$BR'." >&2
       exit 3

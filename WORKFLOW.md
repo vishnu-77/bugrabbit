@@ -1,4 +1,4 @@
-# WORKFLOW.md — dev guide for the bug-fixing agent system
+# WORKFLOW.md — dev guide for BugRabbit, the bug-fixing agent system
 
 How a developer actually uses this system day to day. The design lives in
 `docs/agent-system-plan.md`; the rules the agents follow live in `CLAUDE.md`. This file is the
@@ -8,28 +8,33 @@ hands-on guide.
 
 ## What this does
 
-- **Auto-fix bugs from GitHub issues** — reproduce → root-cause → smallest fix on a branch → push.
+- **Auto-fix bugs from tracked issues** — reproduce → root-cause → smallest fix on a branch → push.
   **You open the PR** (agents never open/merge PRs).
 - **Find bugs in every PR/commit** — a review pass locally (`/review-pr`, `/review-diff`) and in CI
-  (`bug-finder.yml` on every PR/push).
+  (`bug-finder.yml` on every PR/push, GitHub targets today).
 
-One target repo per session. GitHub is the only tracker. Durable state is keyed by
-**`owner/repo#issue`**, so equal issue numbers in different repositories never collide.
+One target repo per session. The active repo's host is the tracker — GitHub, Bitbucket Cloud, or
+GitLab, via `scripts/host.sh`. Durable state is keyed by **`owner/repo#issue`**, so equal issue
+numbers in different repositories never collide.
 
 ---
 
 ## One-time setup (per machine + per target repo)
 
 ```
-brew install gh && gh auth login             # 1. GitHub CLI (prerequisite)
+brew install gh && gh auth login             # 1. GitHub target: GitHub CLI (prerequisite)
+# or, for a Bitbucket Cloud target:
+export BUGRABBIT_BB_USER=<username> BUGRABBIT_BB_TOKEN=<atlassian-api-token>
+# or, for a GitLab target:
+export BUGRABBIT_GL_TOKEN=<personal-or-project-access-token>
 claude --plugin-dir <path-to-this-plugin>    # 2. dev/local test, OR:
 /plugin install <git-url-of-this-plugin>     #    install it properly (any repo, no copying files in)
-/bug-fixer:init-repo <repo-path>             # 3. bootstrap a target: git/remote check, copy CI, index it
+/bugrabbit:init-repo <repo-path>             # 3. bootstrap a target: git/remote check, copy CI, index it
 ```
 
-`/bug-fixer:init-repo` prints a checklist (git ✓/✗, remote ✓/✗, gh ✓/✗, workflow copied, indexed).
-Fix anything it flags. If the target isn't a git repo it offers `git init`; add a remote with
-`git remote add origin <url>`.
+`/bugrabbit:init-repo` prints a checklist (git ✓/✗, remote ✓/✗, host detected + authed ✓/✗, workflow
+copied [GitHub only], indexed). Fix anything it flags. If the target isn't a git repo it offers
+`git init`; add a remote with `git remote add origin <url>`.
 
 **CI (optional):** `bug-finder.yml` needs a self-hosted runner labelled `claude` with local Claude
 Code authed. No `ANTHROPIC_API_KEY` needed.
@@ -82,7 +87,7 @@ automatically.
 
 ## Repository selection is automatic
 
-When bug-fixer is present inside a Git repository, every command automatically uses
+When BugRabbit is present inside a Git repository, every command automatically uses
 `git rev-parse --show-toplevel`. No setup command is required. To control another repository, run
 `/set-repo <repo-path>` as an explicit session override.
 
@@ -109,7 +114,7 @@ Skips anything already `DONE`/`SKIPPED` or with an open PR. Ends with one compre
 
 ### Review code for bugs (no fix)
 ```
-/review-pr 34            # a GitHub PR
+/review-pr 34            # a PR (GitHub, Bitbucket, or GitLab)
 /review-diff             # your uncommitted changes
 /review-diff main...HEAD # a branch's changes
 ```
@@ -119,7 +124,9 @@ Findings land in `docs/findings.md` as `F-NNN` rows (severity + `file:line` + sc
 ```
 /create-issue "scan crashes on empty result" --autofix
 ```
-Dedups against open issues; `--autofix` labels it so the cron + `/autofix-issues` pick it up.
+Dedups against open issues; `--autofix` labels it so the cron + `/autofix-issues` pick it up (GitHub
+and GitLab support labels natively; Bitbucket issues have no label equivalent, `host.sh` ignores
+`--label` there with a note).
 
 ### Track new issues automatically (cron)
 ```
@@ -136,14 +143,14 @@ The cron only **records** new live issues into `docs/issue-log.md` and notifies 
 |---|---|
 | `/set-repo <path>` | Optionally override the automatically detected repository. |
 | `/init-repo [path]` | One-time bootstrap of a target. |
-| `/create-issue "<title>" [--autofix]` | File a GitHub issue (deduped). |
+| `/create-issue "<title>" [--autofix]` | File an issue (deduped). |
 | `/triage-issue <#>` | Read-only: severity + root cause + a `FIX-NNN` row. |
 | `/work-issue <#>` | Full fix pipeline for one issue → pushed branch. |
 | `/autofix-issues [flags]` | Batch fix all eligible issues + a report. |
-| `/review-pr <#>` | Bug-review a GitHub PR. |
+| `/review-pr <#>` | Bug-review a PR. |
 | `/review-diff [ref]` | Bug-review local changes / a range. |
 | `/assign <FIX-NNN> <agent>` | Run one agent on one task. |
-| `/watch-issues [run\|setup <cron>]` | Poll / schedule GitHub issue tracking. |
+| `/watch-issues [run\|setup <cron>]` | Poll / schedule issue tracking. |
 | `/status` | Backlog + open issues/PRs summary. |
 | `/status-check` | Deep drift + dedup audit; reconcile state. |
 | `/findings [list\|show\|close]` | The `F-NNN` findings ledger. |
@@ -195,7 +202,7 @@ Review the `bug-finder` comment CI posts, then merge when happy.
 | Symptom | Fix |
 |---|---|
 | "no repository found" | run inside a Git repository or use `/set-repo <path>` |
-| issue/PR commands inert | `gh` not installed/authed → `brew install gh && gh auth login` |
+| issue/PR commands inert | host not authed → GitHub: `gh` not installed/authed, `brew install gh && gh auth login`. Bitbucket: `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN` unset. GitLab: `BUGRABBIT_GL_TOKEN` unset. |
 | "not a git repo" | `/init-repo <path>` (offers `git init`) |
 | reviewer/triage weak on code | target not indexed → `/init-repo` runs `index_repository` |
 | CI job does nothing | no self-hosted `claude` runner, or empty diff |

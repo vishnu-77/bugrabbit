@@ -1,5 +1,132 @@
 # Changelog
 
+## [3.4.0] — 2026-08-08
+
+GitLab adapter, Bitbucket CI template, and dependency/SAST/SBOM scanning in `gate.sh`. See
+`docs/adr/0003-gitlab-adapter-bitbucket-ci-and-gate-security-scans.md` for full rationale, including
+what was explicitly declined (DAST, true cross-repo reasoning, ephemeral microVMs, CI/CD-integrated
+temporal debugging) and why.
+
+Added:
+- `scripts/host-gitlab.sh` — third `host.sh` backend (GitLab REST v4, same 10-op contract, no
+  merge/create-PR op). Auth via `BUGRABBIT_GL_TOKEN`. `host.sh detect` now matches `gitlab.com`.
+- `bitbucket-pipelines.yml` — Bitbucket Pipelines CI template, mirrors `bug-finder.yml`'s
+  guard→pr-meta-check→diff→review→comment shape. `install-runtime.sh` installs it (+ the
+  `host-bitbucket.sh` backend into `.claude/scripts/`) on Bitbucket targets.
+- `gate.sh`: `osv-scanner` (dependency/SCA, HARD on a known-vulnerable dependency), `semgrep` (SAST,
+  HARD on a rule match, respects a target's own `.semgrep.yml`/`.semgrep/`), `syft` (SBOM,
+  informational-only, written to a temp file — never left in the target tree). All three optional
+  installs, same WARN-if-absent pattern as `gitleaks`.
+
+Fixed (found while building the above, both real bugs, not scope extensions):
+- `gate.sh`'s security scanners (including the `gitleaks` step shipped in 3.2.0) treated *any*
+  nonzero exit as "found something" and hard-failed the gate. Live-testing `semgrep` here hit a
+  Windows encoding crash (exit 2) that got wrongly reported as a finding. All four scanners now
+  share a `sec_scan` helper: exit 1 = real finding (HARD), any other nonzero = tool/config error
+  (WARN) — a crashing scanner isn't a security result.
+- `ci-guard.sh`/`ci-pr-meta-check.sh` only read GitHub's branch env vars before falling back to
+  local git, which resolves to a detached `HEAD` on Bitbucket Pipelines — silently defeating the
+  protected-branch guard there. Both now also read Bitbucket's and GitLab CI's equivalents.
+
+Known gaps: none of `host-gitlab.sh`, `osv-scanner`, `semgrep`'s HARD-fail path, or `syft` were
+exercised against a real finding/live host (no GitLab repo available; `gitleaks`/`osv-scanner`/`syft`
+aren't installed in this dev environment). Syntax-checked; `semgrep`'s WARN path was live-verified.
+
+## [3.3.1] — 2026-08-08
+
+Clarified and extended (no behavior reversal — confirmed with the user): findings were already
+chat + `docs/findings.md` by default, with PR/issue comments opt-in-only locally (`/review-pr` step
+5) and CI (`bug-finder.yml`) as the one path that always posts, per ADR 0001 rule 12 — that stays.
+Documented this explicitly in `docs/findings.md`. Extended `memory_insight` (added to `bug-triager`/
+`bug-fixer` in 3.3.0) to `pr-reviewer`: a *recurring, repo-wide* finding (not a one-off) can now be
+promoted to `docs/bugrabbit-memory.md` via `/review-pr` and `/review-diff`, same Coordinator-append
+model as the other two agents.
+
+## [3.3.0] — 2026-08-08
+
+Three named practices folded into `docs/fix-playbook.md`, plus a new cross-fix memory ledger.
+
+Added:
+- `docs/bugrabbit-memory.md` — durable, cross-fix insights about a target repo (architecture facts,
+  recurring root causes, footguns, flaky-test notes). Coordinator-owned control-plane file, same
+  write model as `docs/backlog.md`/`docs/findings.md`: agents surface an optional `memory_insight`
+  in their Return, the Coordinator appends the row — agents never edit it directly.
+- **Harness engineering** (playbook step 1): reproduction must be a runnable artifact (script/failing
+  test), not prose steps — reused as both the before/after evidence and `qa-verifier`'s test seed.
+- **Graph engineering** (playbook step 2): `trace_path` walked both directions (callers for blast
+  radius, callees for depth) until the cause site has no simpler upstream explanation.
+- **Loop engineering** (playbook step 4): every bounded corrective loop (gate.sh cap 5, review-fix
+  cap 3) now also terminates early on a stalled signal — identical failure two iterations running
+  aborts rather than burning the rest of the cap.
+- Playbook step 0 (check memory before starting) and step 7 (surface memory sparingly after).
+
+Changed: `CLAUDE.md` (§2 control-plane file list, §9 reference list), `bug-triager.md`/`bug-fixer.md`
+(`memory_insight` in Return + Inputs), `commands/triage-issue.md`/`work-issue.md` (Coordinator
+appends the row on return), `docs/agent-system-plan.md` layout diagram.
+
+## [3.2.0] — 2026-08-08
+
+`gate.sh` runs a `gitleaks` secret scan first, language-agnostic, before lint/typecheck/test/build:
+HARD-fails the gate on any finding (`--redact`, so the leaked value itself never hits gate
+output/logs), WARNs and skips if `gitleaks` isn't installed (same pattern as every other tool in the
+gate). Does not count toward the gate's `RAN` tracking — it's an additional check, not a substitute
+for toolchain verification. Verified locally: WARN path confirmed (gitleaks not installed in this
+dev environment); the HARD-fail path was read through, not exercised against a real leaked secret.
+
+## [3.1.0] — 2026-08-08
+
+Host-agnostic issue/PR adapter: BugRabbit now works against **Bitbucket Cloud** targets, not just
+GitHub. See `docs/adr/0002-host-agnostic-issue-pr-adapter.md`.
+
+Added:
+- `scripts/host.sh` — dispatcher that detects the active repo's host from its origin remote
+  (`github.com`/`bitbucket.org`, override via `VP_HOST`) and forwards to a backend.
+- `scripts/host-github.sh` — the original `gh` calls, lifted behind the adapter (behavior-identical).
+- `scripts/host-bitbucket.sh` — new Bitbucket Cloud backend (REST API v2.0 via `curl`+`jq`, Basic
+  auth via `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN`).
+- `docs/adr/0002-host-agnostic-issue-pr-adapter.md` — supersedes 0001.
+
+Changed:
+- `poll-issues.sh`, `repo-status.sh`, `find-bugs.sh`, `install-runtime.sh` now call `host.sh` instead
+  of `gh` directly. `install-runtime.sh` skips the GitHub Actions workflow template on non-GitHub
+  hosts (no Bitbucket Pipelines equivalent yet).
+- All issue/PR-facing commands (`create-issue`, `triage-issue`, `work-issue`, `review-pr`, `status`,
+  `status-check`, `watch-issues`, `set-repo`, `init-repo`, `autofix-issues`) and the `bug-triager`/
+  `pr-reviewer` agent specs now call `host.sh` and use host-neutral wording.
+- `CLAUDE.md`, `docs/agent-system-plan.md`, `README.md`, `WORKFLOW.md` reworded where they asserted
+  GitHub-exclusivity.
+
+Deferred (documented in ADR 0002, not built): a Bitbucket Pipelines CI template, GitLab support,
+self-hosted GitHub/Bitbucket Server auto-detection beyond the manual `VP_HOST` override.
+
+Known gap: `host-bitbucket.sh` was syntax-checked and read through but not exercised against a live
+Bitbucket Cloud repo in this change (none was available) — treat as unverified until a real
+end-to-end pass happens. `host-github.sh`/the rewired scripts were verified live against this
+plugin's own GitHub repo, output unchanged.
+
+## [3.0.0] — 2026-08-07
+
+Renamed the plugin from `bug-fixer` to **BugRabbit** — "autonomous debugging for Claude Code." No
+behavioural change to the agents, gate, or workflow; this is a branding + identity release.
+
+Breaking:
+- `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: `name` changed
+  `bug-fixer` → `bugrabbit`. The plugin command namespace changes accordingly:
+  `/bug-fixer:<command>` → `/bugrabbit:<command>`. Existing installs should reinstall
+  (`/plugin install <repo>`) to pick up the new slug; any scripts or muscle-memory invoking
+  `/bug-fixer:*` need updating to `/bugrabbit:*`.
+- Release tag prefix changed `bug-fixer--v*` → `bugrabbit--v*` (`.github/workflows/release.yml`).
+
+Unchanged, on purpose:
+- Sub-agent role names (`bug-triager`, `bug-fixer`, `pr-reviewer`, `qa-verifier`) — these describe
+  the specialist's job, not the product, and stay as-is.
+- The underlying GitHub repository path (`vishnu-77/bug-fixer`) — renaming the repo itself is a
+  separate, human-driven action (GitHub repo settings), not part of this plugin-identity change.
+- All agent behaviour, `gate.sh`, backlog/findings schemas, and the git/GitHub protocol in this file.
+
+Added a top-level `README.md` (previously missing) covering install, one-time setup, daily
+commands, and the permission deny-list — pulled from `WORKFLOW.md`, rebranded.
+
 ## [2.1.1] — 2026-08-04
 
 Follow-up to 2.1.0: the new `PARTIAL` status was only wired into `docs/backlog.md` and

@@ -1,6 +1,6 @@
 # 0001. GitHub-only, fix-and-push, agents never open/merge PRs
 
-**Status:** Accepted
+**Status:** Superseded by [0002](0002-host-agnostic-issue-pr-adapter.md)
 **Date:** 2026-07-16
 
 ## Context

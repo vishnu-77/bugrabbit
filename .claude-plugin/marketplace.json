@@ -1,14 +1,14 @@
 {
-  "name": "bug-fixer",
-  "description": "Single-plugin marketplace for the bug-fixer control plane (issue triage, root-cause fixing, PR review).",
+  "name": "bugrabbit",
+  "description": "Single-plugin marketplace for BugRabbit, the autonomous bug-fixing control plane (issue triage, root-cause fixing, PR review).",
   "owner": {
     "name": "vishnu-77"
   },
   "plugins": [
     {
-      "name": "bug-fixer",
+      "name": "bugrabbit",
       "source": "./",
-      "description": "Automated GitHub issue triage, root-cause fixing, and PR review for any repo"
+      "description": "BugRabbit — autonomous debugging for Claude Code. Automated issue triage, root-cause fixing, and PR review for GitHub, Bitbucket, or GitLab repos"
     }
   ]
 }

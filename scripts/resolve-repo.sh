@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Resolve the repository operated on by bug-fixer.
+# Resolve the repository operated on by BugRabbit.
 # Priority: explicit argument, VP_ACTIVE_REPO override, enclosing Git repository.
 
 resolve_repo() {

@@ -8,16 +8,35 @@ source "$ROOT/scripts/resolve-repo.sh"
 TARGET="$(resolve_repo "${1:-}")" || exit $?
 FORCE="${2:-}"
 
-# src (this plugin's layout) : dst (target repo's .claude/ layout — bug-finder.yml expects its
-# companion files there regardless of how the plugin itself is organised).
+# src (this plugin's layout) : dst (target repo's .claude/ layout — the CI templates below expect
+# their companion files there regardless of how the plugin itself is organised).
 FILES=(
   "runtime-version:.claude/runtime-version"
-  ".github/workflows/bug-finder.yml:.github/workflows/bug-finder.yml"
   "agents/pr-reviewer.md:.claude/agents/pr-reviewer.md"
   "scripts/ci-guard.sh:.claude/scripts/ci-guard.sh"
   "scripts/ci-pr-meta-check.sh:.claude/scripts/ci-pr-meta-check.sh"
+  "scripts/resolve-repo.sh:.claude/scripts/resolve-repo.sh"
+  "scripts/host.sh:.claude/scripts/host.sh"
   "docs/review-rubric.md:docs/review-rubric.md"
 )
+
+# The CI template + its host.sh backend are host-specific — install whichever one the target
+# actually uses (see docs/adr/0002-host-agnostic-issue-pr-adapter.md,
+# docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md). GitLab CI has no template yet.
+CI_HOST="$(VP_ACTIVE_REPO="$TARGET" "$ROOT/scripts/host.sh" detect)"
+case "$CI_HOST" in
+  github)
+    FILES+=(".github/workflows/bug-finder.yml:.github/workflows/bug-finder.yml")
+    FILES+=("scripts/host-github.sh:.claude/scripts/host-github.sh")
+    ;;
+  bitbucket)
+    FILES+=("bitbucket-pipelines.yml:bitbucket-pipelines.yml")
+    FILES+=("scripts/host-bitbucket.sh:.claude/scripts/host-bitbucket.sh")
+    ;;
+  *)
+    echo "skipped: CI template (no template for host '$CI_HOST' yet — everything else installs normally)"
+    ;;
+esac
 
 installed=0
 unchanged=0
@@ -57,12 +76,12 @@ echo "runtime: installed=$installed unchanged=$unchanged conflicts=$conflicts"
 # learns the gate doesn't run cleanly here.
 echo ""
 echo "-- baseline toolchain health (informational, does not affect install) --"
-ALLOW_EMPTY_GATE=1 bash "$ROOT/scripts/gate.sh" "$TARGET" > /tmp/bug-fixer-baseline-gate.$$ 2>&1
+ALLOW_EMPTY_GATE=1 bash "$ROOT/scripts/gate.sh" "$TARGET" > /tmp/bugrabbit-baseline-gate.$$ 2>&1
 GATE_RC=$?
 if [ "$GATE_RC" -eq 0 ]; then
   echo "  gate.sh: clean baseline"
 else
   echo "  gate.sh: pre-existing issues found (not caused by this install) — see below"
-  grep -E '^(FAIL|warn):' /tmp/bug-fixer-baseline-gate.$$ || true
+  grep -E '^(FAIL|warn):' /tmp/bugrabbit-baseline-gate.$$ || true
 fi
-rm -f /tmp/bug-fixer-baseline-gate.$$
+rm -f /tmp/bugrabbit-baseline-gate.$$
