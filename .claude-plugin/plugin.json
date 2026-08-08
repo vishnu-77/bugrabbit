@@ -1,6 +1,6 @@
 {
   "name": "bugrabbit",
-  "description": "BugRabbit — hop to the root cause, patch with confidence. Automated GitHub issue triage, root-cause fixing, and PR review for any repo.",
+  "description": "BugRabbit — autonomous debugging for Claude Code. Automated GitHub issue triage, root-cause fixing, and PR review for any repo.",
   "version": "3.0.0",
   "author": {
     "name": "vishnu-77"

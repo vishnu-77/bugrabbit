@@ -1,6 +1,6 @@
-# 🐇 BugRabbit
+# BugRabbit
 
-**Hop to the root cause. Patch with confidence.**
+**Autonomous debugging for Claude Code.**
 
 BugRabbit is a Claude Code plugin: a reusable bug-fixing / code-review control plane for any Git
 repository. It does two things:

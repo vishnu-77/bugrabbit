@@ -2,9 +2,8 @@
 
 ## [3.0.0] — 2026-08-07
 
-Renamed the plugin from `bug-fixer` to **BugRabbit** — "hop to the root cause, patch with
-confidence." No behavioural change to the agents, gate, or workflow; this is a branding + identity
-release.
+Renamed the plugin from `bug-fixer` to **BugRabbit** — "autonomous debugging for Claude Code." No
+behavioural change to the agents, gate, or workflow; this is a branding + identity release.
 
 Breaking:
 - `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: `name` changed
