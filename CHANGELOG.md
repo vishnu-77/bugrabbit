@@ -1,5 +1,36 @@
 # Changelog
 
+## [3.1.0] — 2026-08-08
+
+Host-agnostic issue/PR adapter: BugRabbit now works against **Bitbucket Cloud** targets, not just
+GitHub. See `docs/adr/0002-host-agnostic-issue-pr-adapter.md`.
+
+Added:
+- `scripts/host.sh` — dispatcher that detects the active repo's host from its origin remote
+  (`github.com`/`bitbucket.org`, override via `VP_HOST`) and forwards to a backend.
+- `scripts/host-github.sh` — the original `gh` calls, lifted behind the adapter (behavior-identical).
+- `scripts/host-bitbucket.sh` — new Bitbucket Cloud backend (REST API v2.0 via `curl`+`jq`, Basic
+  auth via `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN`).
+- `docs/adr/0002-host-agnostic-issue-pr-adapter.md` — supersedes 0001.
+
+Changed:
+- `poll-issues.sh`, `repo-status.sh`, `find-bugs.sh`, `install-runtime.sh` now call `host.sh` instead
+  of `gh` directly. `install-runtime.sh` skips the GitHub Actions workflow template on non-GitHub
+  hosts (no Bitbucket Pipelines equivalent yet).
+- All issue/PR-facing commands (`create-issue`, `triage-issue`, `work-issue`, `review-pr`, `status`,
+  `status-check`, `watch-issues`, `set-repo`, `init-repo`, `autofix-issues`) and the `bug-triager`/
+  `pr-reviewer` agent specs now call `host.sh` and use host-neutral wording.
+- `CLAUDE.md`, `docs/agent-system-plan.md`, `README.md`, `WORKFLOW.md` reworded where they asserted
+  GitHub-exclusivity.
+
+Deferred (documented in ADR 0002, not built): a Bitbucket Pipelines CI template, GitLab support,
+self-hosted GitHub/Bitbucket Server auto-detection beyond the manual `VP_HOST` override.
+
+Known gap: `host-bitbucket.sh` was syntax-checked and read through but not exercised against a live
+Bitbucket Cloud repo in this change (none was available) — treat as unverified until a real
+end-to-end pass happens. `host-github.sh`/the rewired scripts were verified live against this
+plugin's own GitHub repo, output unchanged.
+
 ## [3.0.0] — 2026-08-07
 
 Renamed the plugin from `bug-fixer` to **BugRabbit** — "autonomous debugging for Claude Code." No

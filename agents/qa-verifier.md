@@ -45,7 +45,8 @@ By `/fix-issue <#>` (parallel with `pr-reviewer` after the fixer's gate is green
 
 `git diff`/`log`/`show` (read-only), the target's test runner, `${CLAUDE_PLUGIN_ROOT}/scripts/gate.sh`,
 `git add <test-files>`/`git commit`/`git push -u origin <branch>` (feature branch only, tests only,
-per task). **Never** push `main`/`master`, force-push, `gh pr create`/`gh pr merge`.
+per task). **Never** push `main`/`master`, force-push, `gh pr create`/`gh pr merge` (no equivalent
+op exists on any other host either).
 
 ## Boundaries
 

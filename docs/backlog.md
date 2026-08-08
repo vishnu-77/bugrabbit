@@ -1,6 +1,6 @@
 # Backlog — bug-fixing system
 
-Source of truth for **open fix work**. One `FIX-NNN` row per repository-qualified GitHub issue.
+Source of truth for **open fix work**. One `FIX-NNN` row per repository-qualified issue.
 
 **Dedup key = `owner/repo#issue`.** Never mint a second row for the same issue in the same repository.
 `/triage-issue` and `/work-issue` check-before-write; `/status-check` detects `DUP-ROW`.

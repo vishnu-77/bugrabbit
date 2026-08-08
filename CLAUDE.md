@@ -12,7 +12,7 @@ inline.
 This is a **reusable bug-fixing / code-review control plane**. It does two jobs for any repository
 you point it at:
 
-1. **Auto-fix bugs** described in a **GitHub issue** — reproduce → root-cause → smallest safe fix on a
+1. **Auto-fix bugs** described in an **issue** — reproduce → root-cause → smallest safe fix on a
    branch → push (the human opens the PR).
 2. **Identify bugs** in **every PR/commit** — a review pass over the diff that reports correctness,
    security, regression, and quality findings (run locally and in CI on `pull_request`/`push`).
@@ -22,8 +22,10 @@ It is designed to live inside any Git repository and automatically targets that 
 the only tree the agents touch. The full design is
 `docs/agent-system-plan.md`.
 
-**GitHub is the only source of truth** (issues + PRs) — no Jira. Every unit of work traces to a
-repository-qualified issue key (`owner/repo#N`) and a `FIX-NNN` backlog row.
+**The active repo's host is the source of truth** (issues + PRs) — GitHub or Bitbucket Cloud today
+(via `scripts/host.sh`, see `docs/adr/0002-host-agnostic-issue-pr-adapter.md`), GitLab planned. No
+Jira. Every unit of work traces to a repository-qualified issue key (`owner/repo#N`) and a `FIX-NNN`
+backlog row.
 
 ---
 
@@ -47,7 +49,7 @@ This terminal is the Coordinator. Responsibilities:
 
 ---
 
-## 3. Git / GitHub protocol
+## 3. Git / host protocol
 
 - **Repository required.** Commands auto-detect the enclosing Git root. `/set-repo <path>` overrides
   it for cross-tree control; commands refuse to mutate when repository resolution fails.
@@ -75,7 +77,7 @@ pins `model: sonnet`** into each Task prompt (refuse if the file is absent; neve
 
 | Agent | Role |
 |---|---|
-| `bug-triager` | **Read-only.** Reads ONE GitHub issue, reproduces, classifies severity, locates the root cause via codebase-memory MCP, and emits a `fix-task` spec. Does not edit code. |
+| `bug-triager` | **Read-only.** Reads ONE issue, reproduces, classifies severity, locates the root cause via codebase-memory MCP, and emits a `fix-task` spec. Does not edit code. |
 | `bug-fixer` | Implements the **smallest root-cause fix** for ONE `fix-task` on a branch; drives `gate.sh` to green (cap 5 → `GATE_LOOP_EXHAUSTED`); commits + **pushes the branch**. Never opens/merges a PR. |
 | `pr-reviewer` | **Read-only.** Reviews a PR / commit-range / working diff against `docs/review-rubric.md`; returns structured findings (severity + `file:line` + suggested fix). The "identify bugs in every PR/commit" engine — used locally and by CI. |
 | `qa-verifier` | Adds/adjusts **minimal** tests to lock a fix and assess regression risk; re-runs `gate.sh` to confirm green. Adds tests only — never edits product code. |
@@ -88,7 +90,7 @@ Each agent returns a compact structured result ending
 ## 5. Workflow per issue
 
 ```
-[GitHub issue #N  →  /triage-issue N]
+[issue #N  →  /triage-issue N]
   │ bug-triager (sonnet, read-only): reproduce · severity · root cause · fix-task
   ▼  Coordinator appends FIX-NNN row to docs/backlog.md
 [/fix-issue N]
@@ -105,11 +107,11 @@ records findings — no branch, no fix.
 
 ## 6. Non-negotiable rules
 
-1. **Git/GitHub protocol** per §3. No `main`/`master` commits or pushes from agents. No attribution
+1. **Git/host protocol** per §3. No `main`/`master` commits or pushes from agents. No attribution
    trailers. Agents never open/merge PRs.
 2. **No resolved repo, no execution.** Any code/branch/commit mutation requires either the enclosing
    Git root or a valid `/set-repo` override. The plan-first commands do not mutate the target tree.
-3. **Backlog + issue trace.** All fix work traces to a `FIX-NNN` backlog row tied to a GitHub issue #;
+3. **Backlog + issue trace.** All fix work traces to a `FIX-NNN` backlog row tied to a tracker issue #;
    every agent Return cites its task ID.
 4. **Root cause first, smallest change.** Fix causes, not symptoms; touch only what is necessary; no
    drive-by refactors or unrelated improvements (see `docs/fix-playbook.md`).
@@ -143,8 +145,8 @@ records findings — no branch, no fix.
 
 ## 7. Technology baseline
 
-- **`gh` CLI** (GitHub issues/PRs) + **git**. `gh` and per-repo remotes are prerequisites; `/init-repo`
-  wires them and reports what is missing.
+- **`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh`** (GitHub via `gh`, Bitbucket Cloud via REST v2.0) + **git**. Host auth
+  and per-repo remotes are prerequisites; `/init-repo` wires them and reports what is missing.
 - **codebase-memory MCP** for structural code discovery (index each target once).
 - **`gate.sh`** auto-detects the target's toolchain (Node/npm, Python, Go, generic) and runs
   lint → typecheck → test → build; HARD on failure, WARN when a tool is absent.
@@ -162,16 +164,16 @@ Installed as a plugin, every command below is namespaced `/bugrabbit:<command>` 
 |---|---|
 | `/set-repo <path>` | Optional override. Set + validate a different target repo; otherwise the enclosing Git root is used. |
 | `/init-repo [path]` | Bootstrap a target: `git init`/remote check, copy `bug-finder.yml`, index via codebase-memory MCP, print prerequisite fixes. |
-| `/create-issue "<title>"` | File a GitHub issue (optionally `--autofix` label), with dedup against open issues. |
+| `/create-issue "<title>"` | File an issue (optionally `--autofix` label), with dedup against open issues. |
 | `/triage-issue <#>` | Read-only. `bug-triager` → severity + root cause + `fix-task`; append a `FIX-NNN` row (dedup by repository + issue). |
 | `/work-issue <#>` | Work one issue end-to-end: triage → fixer → (pr-reviewer ∥ qa-verifier) → pushed branch. Idempotent. No PR. |
 | `/autofix-issues [flags]` | **Batch.** Run the pipeline across ALL eligible open issues; skip settled work; print one comprehensive report. |
-| `/review-pr <#>` | `pr-reviewer` over a GitHub PR; record findings (optionally post review comments). |
+| `/review-pr <#>` | `pr-reviewer` over a PR; record findings (optionally post review comments). |
 | `/review-diff [ref]` | `pr-reviewer` over the local working diff / commit range. |
 | `/assign <FIX-NNN> <agent>` | Single dispatch via Task (spec + task embedded, model pinned). |
-| `/watch-issues [run\|setup <cron>]` | Run or schedule the cron that polls GitHub for new/unchecked issues → `docs/issue-log.md` (tracking only). |
+| `/watch-issues [run\|setup <cron>]` | Run or schedule the cron that polls the tracker for new/unchecked issues → `docs/issue-log.md` (tracking only). |
 | `/status` | Backlog + open issues/PRs summary (`repo-status.sh`). |
-| `/status-check` | Deep drift + dedup audit: GitHub ↔ backlog ↔ branches ↔ issue-log. Read-first; markdown-only fixes. |
+| `/status-check` | Deep drift + dedup audit: tracker ↔ backlog ↔ branches ↔ issue-log. Read-first; markdown-only fixes. |
 | `/findings` | View / append the `F-NNN` findings ledger. |
 | `/archive-task [FIX-NNN\|all-done]` | Move settled (`DONE`/`SKIPPED`) rows to `docs/backlog-archive.md`. |
 | `/adr` | Create the next-numbered ADR in `docs/adr/`. |
@@ -187,7 +189,9 @@ Installed as a plugin, every command below is namespaced `/bugrabbit:<command>` 
 - `docs/fix-playbook.md` — the root-cause fix workflow the `bug-fixer` follows.
 - `docs/templates/{fix-task.md,review-report.md}` — task + review templates.
 - `${CLAUDE_PLUGIN_ROOT}/scripts/{gate,repo-status,find-bugs,ci-guard,ci-pr-meta-check,poll-issues,log-prompt}.sh`.
-- `.github/workflows/bug-finder.yml` — the CI review workflow (template copied into each target).
+- `${CLAUDE_PLUGIN_ROOT}/scripts/host.sh` + `host-github.sh` / `host-bitbucket.sh` — the issue/PR adapter (§7); see
+  `docs/adr/0002-host-agnostic-issue-pr-adapter.md`.
+- `.github/workflows/bug-finder.yml` — the CI review workflow (template copied into GitHub targets only).
 
 ---
 

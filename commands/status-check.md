@@ -1,24 +1,24 @@
 ---
-description: Deep drift + dedup audit — reconcile GitHub issues/PRs ↔ backlog (FIX-NNN) ↔ branches ↔ issue-log. Read-first.
+description: Deep drift + dedup audit — reconcile tracker issues/PRs ↔ backlog (FIX-NNN) ↔ branches ↔ issue-log. Read-first.
 ---
 
 Use the enclosing Git repository, or the `/set-repo` override. Deep consistency audit across all state. **Read-first**; the
 only writes are markdown corrections to `docs/backlog.md` / `docs/issue-log.md` (never code, never
-Jira, never GitHub state).
+Jira, never tracker state).
 
 Reconcile these four sources and report every mismatch:
 
-1. **GitHub issues** (`gh issue list --state all`) — the source of truth for what exists.
+1. **Tracker issues** (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh issue-list --state all`) — the source of truth for what exists.
 2. **`docs/issue-log.md`** — the cron "seen" set.
 3. **`docs/backlog.md`** — `FIX-NNN` rows (dedup key = `owner/repo#issue`). Only reconcile rows
    belonging to the active repository.
-4. **Branches** (`git branch -a`) + **open PRs** (`gh pr list`).
+4. **Branches** (`git branch -a`) + **open PRs** (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh pr-list`).
 
 Detect and label:
 - **DUP-ROW** — two `FIX-NNN` rows cite the same repository-qualified issue (dedup violation). Recommend keeping the
   oldest, superseding the rest.
 - **DUP-BRANCH** — more than one `fix/<#>-*` branch for one issue.
-- **ORPHAN-ROW** — a `FIX-NNN` row whose issue is `closed`/deleted on GitHub → mark for archive.
+- **ORPHAN-ROW** — a `FIX-NNN` row whose issue is `closed`/deleted on the tracker → mark for archive.
 - **STALE-DONE** — a row `DONE` but its issue is still open with no merged PR → flag for recheck.
 - **STALE-PARTIAL** — a row `PARTIAL` whose *shipped slice* has no open or merged PR at all (i.e. the
   branch exists but nothing was ever proposed for it) → flag for recheck. An issue staying open with

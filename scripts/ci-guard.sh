@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
-# ci-guard.sh — defensive validation helper. GitHub token permissions and runner isolation remain
-# the actual security boundary; this script catches obvious protected-branch mistakes.
+# ci-guard.sh — defensive validation helper. Host token permissions and runner isolation remain
+# the actual security boundary; this script catches obvious protected-branch mistakes. The `gh pr
+# merge`/`gh pr create` literals below are defense-in-depth for humans running raw `gh` locally —
+# scripts/host.sh (the sanctioned mutation path for agents) structurally never exposes a
+# merge/create-PR op on any host, so there's no Bitbucket-equivalent pattern to add here.
 #
 # Usage:
 #   ci-guard.sh assert            # assert we are NOT on/targeting main/master; exit non-zero if so

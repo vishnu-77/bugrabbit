@@ -38,7 +38,8 @@ By `/assign <FIX-NNN> bug-fixer` or the fix step of `/fix-issue <#>`, on the act
 - Smallest correct change at the **root cause** (rule 4). If the fix would balloon in scope, stop and
   return `NEEDS_FIX` with why — the Coordinator re-scopes.
 - Never commit to or push `main`/`master`; never force-push; never `rebase`/`--amend` (denied).
-- Never open or merge a PR (`gh pr create`/`gh pr merge` denied).
+- Never open or merge a PR — no such op exists in `scripts/host.sh` on any host, and `gh pr
+  create`/`gh pr merge` are denied besides.
 - No secrets in code, commits, or logs. Never commit `.env`/keys/tokens.
 - codebase-memory MCP first for discovery.
 
@@ -47,7 +48,7 @@ By `/assign <FIX-NNN> bug-fixer` or the fix step of `/fix-issue <#>`, on the act
 `git checkout -b`, `git add`, `git commit`, `git push -u origin <branch>` (feature branch only),
 `git status`/`diff`/`log`, `${CLAUDE_PLUGIN_ROOT}/scripts/gate.sh`, the target's build/test/lint commands. **Never**
 `git push origin main/master`, `git push --force`, `git rebase`, `git commit --amend`,
-`gh pr create`, `gh pr merge`.
+`gh pr create`, `gh pr merge` (no equivalent op exists on any other host either).
 
 ## Boundaries
 

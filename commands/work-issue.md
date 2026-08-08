@@ -1,9 +1,9 @@
 ---
-description: Work one GitHub issue end-to-end — triage, fix on a branch, review + QA, push. Idempotent. Never opens a PR.
+description: Work one issue end-to-end — triage, fix on a branch, review + QA, push. Idempotent. Never opens a PR.
 argument-hint: <issue-number>
 ---
 
-Use the enclosing Git repository, or the `/set-repo` override. Work GitHub issue **#$ARGUMENTS** end-to-end. The agent pushes
+Use the enclosing Git repository, or the `/set-repo` override. Work issue **#$ARGUMENTS** end-to-end. The agent pushes
 a branch; the **human opens the PR** (agents never open/merge PRs).
 
 **Idempotency + dedup (check FIRST — never duplicate work):**

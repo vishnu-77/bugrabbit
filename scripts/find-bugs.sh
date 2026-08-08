@@ -5,7 +5,7 @@
 # This script only GATHERS inputs and invokes the reviewer; all judgement lives in the agent + rubric.
 #
 # Usage:
-#   find-bugs.sh pr   <pr-number>         # review a GitHub PR (needs gh)
+#   find-bugs.sh pr   <pr-number>         # review a PR (via scripts/host.sh — GitHub or Bitbucket)
 #   find-bugs.sh range <base>..<head>     # review a commit range
 #   find-bugs.sh diff                     # review the working tree (default)
 #
@@ -25,8 +25,9 @@ cd "$TARGET_DIR"
 
 case "$MODE" in
   pr)
-    command -v gh >/dev/null 2>&1 || { echo "FAIL: gh not installed" >&2; exit 2; }
-    DIFF="$(gh pr diff "$ARG" 2>/dev/null)" || { echo "FAIL: gh pr diff $ARG" >&2; exit 2; }
+    DIFF="$(VP_ACTIVE_REPO="$TARGET_DIR" "$VP_ROOT/scripts/host.sh" pr-diff "$ARG" 2>/dev/null)" || {
+      echo "FAIL: host.sh pr-diff $ARG" >&2; exit 2
+    }
     LABEL="PR #$ARG" ;;
   range)
     DIFF="$(git diff "$ARG" 2>/dev/null)" || { echo "FAIL: git diff $ARG" >&2; exit 2; }

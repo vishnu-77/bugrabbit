@@ -12,12 +12,19 @@ FORCE="${2:-}"
 # companion files there regardless of how the plugin itself is organised).
 FILES=(
   "runtime-version:.claude/runtime-version"
-  ".github/workflows/bug-finder.yml:.github/workflows/bug-finder.yml"
   "agents/pr-reviewer.md:.claude/agents/pr-reviewer.md"
   "scripts/ci-guard.sh:.claude/scripts/ci-guard.sh"
   "scripts/ci-pr-meta-check.sh:.claude/scripts/ci-pr-meta-check.sh"
   "docs/review-rubric.md:docs/review-rubric.md"
 )
+
+# bug-finder.yml is a GitHub Actions template — only meaningful on a GitHub-hosted target. No
+# Bitbucket Pipelines equivalent exists yet (see docs/adr/0002-host-agnostic-issue-pr-adapter.md).
+if [ "$(VP_ACTIVE_REPO="$TARGET" "$ROOT/scripts/host.sh" detect)" = "github" ]; then
+  FILES+=(".github/workflows/bug-finder.yml:.github/workflows/bug-finder.yml")
+else
+  echo "skipped: .github/workflows/bug-finder.yml (no CI template for this host yet — everything else installs normally)"
+fi
 
 installed=0
 unchanged=0

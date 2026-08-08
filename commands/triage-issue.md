@@ -1,13 +1,13 @@
 ---
-description: Read-only triage of one GitHub issue via bug-triager; appends a FIX-NNN backlog row.
+description: Read-only triage of one issue via bug-triager; appends a FIX-NNN backlog row.
 argument-hint: <issue-number>
 ---
 
-Use the enclosing Git repository, or the `/set-repo` override. Triage GitHub issue **#$ARGUMENTS**. Read-only — no code
+Use the enclosing Git repository, or the `/set-repo` override. Triage issue **#$ARGUMENTS**. Read-only — no code
 changes, no branch.
 
-1. Confirm the active repo is set and `gh` is authed. Fetch the issue (`gh issue view $ARGUMENTS
-   --comments`); if it does not exist, stop.
+1. Confirm the active repo is set and its host is authed (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh auth-status`).
+   Fetch the issue (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh issue-view $ARGUMENTS`); if it does not exist, stop.
 2. **Load the agent by plugin-relative path** `${CLAUDE_PLUGIN_ROOT}/agents/bug-triager.md`. If absent, **REFUSE
    (fail-closed)** — never dispatch a bare guessed name, never `~/.claude/agents/`.
 3. Spawn via the Task tool with **`model: sonnet`**, embedding (the harness does NOT auto-load

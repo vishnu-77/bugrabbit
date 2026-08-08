@@ -4,7 +4,7 @@ argument-hint: "[FIX-NNN | all-done]"
 ---
 
 Keep `docs/backlog.md` lean by relocating settled rows. Markdown-only; never touches code, git, or
-GitHub state.
+tracker state.
 
 1. Resolve targets:
    - `FIX-NNN` → that one row (must be `DONE` or `SKIPPED`; refuse otherwise).

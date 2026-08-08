@@ -1,11 +1,13 @@
 # bug-fixing agent system — design
 
-Reusable control plane that (a) auto-fixes bugs from GitHub issues and (b) finds bugs in
+Reusable control plane that (a) auto-fixes bugs from tracked issues and (b) finds bugs in
 every PR/commit. Modelled on `polaris-sandbox-helm` / `polaris-shared-helm-charts`: a Coordinator +
 pinned Sonnet sub-agents + slash commands + thin helper scripts + docs backlog + deny-guards.
 
 ## Principles
-- **GitHub-only** source of truth (issues + PRs). No Jira. Work keyed by **`owner/repo#issue`**.
+- **The active repo's host is the source of truth** (issues + PRs) — GitHub or Bitbucket Cloud today
+  via `scripts/host.sh` (see `docs/adr/0002-host-agnostic-issue-pr-adapter.md`), GitLab planned. No
+  Jira. Work keyed by **`owner/repo#issue`**.
 - **Reusable**: auto-detects the enclosing Git root; `/set-repo` optionally targets a different repo.
 - **Autonomy**: agents **fix + push a branch**, never open/merge PRs (human does). Enforced by
   `.claude/settings.json` deny + `ci-guard.sh`.
@@ -24,7 +26,8 @@ bugrabbit/                      (plugin root)
     commands/ set-repo · init-repo · create-issue · triage-issue · work-issue ·
               autofix-issues · review-pr · review-diff · assign · watch-issues ·
               status · status-check · findings · adr
-    scripts/ gate.sh · repo-status.sh · find-bugs.sh · ci-guard.sh · poll-issues.sh
+    scripts/ gate.sh · repo-status.sh · find-bugs.sh · ci-guard.sh · poll-issues.sh ·
+             host.sh · host-github.sh · host-bitbucket.sh
   docs/
     agent-system-plan.md (this) · backlog.md · findings.md · issue-log.md
     review-rubric.md · fix-playbook.md · templates/{fix-task,review-report}.md · adr/
@@ -59,15 +62,17 @@ CI:      bug-finder.yml on PR/push → ci-guard assert → find diff → pr-revi
   `UNWORKED`, `DRIFT-STATUS` and reconciles (markdown-only, human-approved).
 
 ## Prerequisites
-- `gh` CLI installed + authed (`brew install gh && gh auth login`).
-- Target is a git repo with a GitHub remote (`/init-repo` checks/creates).
+- Host auth: `gh` CLI installed + authed for GitHub (`brew install gh && gh auth login`), or
+  `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN` set for Bitbucket Cloud.
+- Target is a git repo with a GitHub or Bitbucket Cloud remote (`/init-repo` checks/creates).
 - Target indexed in codebase-memory MCP (`index_repository`).
 - CI: a self-hosted runner labelled `claude` with authed local Claude Code. No `ANTHROPIC_API_KEY`.
 
 ## Verification
 See the "Verification" section of the approved plan: gate on the target repo, index + `search_graph`,
 `/review-diff` on a seeded bug, `/work-issue` produces a pushed branch (no PR), CI posts a comment and
-never merges, deny-guards block `gh pr merge` / `git push origin main`.
+never merges, deny-guards block `gh pr merge` / `git push origin main` (and `scripts/host.sh`
+structurally has no merge/create-PR op on any host).
 
 ## Out of scope
 Opening/merging PRs (human), deploying/releasing, cross-repo fixes in one branch, history rewrites.

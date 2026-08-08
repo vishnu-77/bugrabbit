@@ -8,7 +8,7 @@
     {
       "name": "bugrabbit",
       "source": "./",
-      "description": "BugRabbit — autonomous debugging for Claude Code. Automated GitHub issue triage, root-cause fixing, and PR review for any repo"
+      "description": "BugRabbit — autonomous debugging for Claude Code. Automated issue triage, root-cause fixing, and PR review for GitHub or Bitbucket repos"
     }
   ]
 }

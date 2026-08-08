@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
-# poll-issues.sh — cron helper. Poll the active repo's open GitHub issues and record any NOT yet
-# tracked into docs/issue-log.md (the "seen" ledger). Idempotent + dedup: an owner/repo#issue key
-# already present in the ledger is never appended again. Prints the count of newly-seen issues.
+# poll-issues.sh — cron helper. Poll the active repo's open issues (GitHub or Bitbucket, via
+# scripts/host.sh) and record any NOT yet tracked into docs/issue-log.md (the "seen" ledger).
+# Idempotent + dedup: an owner/repo#issue key already present in the ledger is never appended again.
+# Prints the count of newly-seen issues.
 #
 # Usage: poll-issues.sh [TARGET_DIR] [--label <label>]
 #   TARGET_DIR default: $VP_ACTIVE_REPO. --label default: none (all open issues).
@@ -15,14 +16,14 @@ source "$VP_ROOT/scripts/resolve-repo.sh"
 TARGET="$(resolve_repo "${1:-}")" || exit $?
 LABEL=""
 [ "${2:-}" = "--label" ] && LABEL="${3:-}"
+HOST_SH="$VP_ROOT/scripts/host.sh"
 
-command -v gh >/dev/null 2>&1 || { echo "FAIL: gh not installed" >&2; exit 2; }
-gh auth status >/dev/null 2>&1 || { echo "FAIL: gh not authed" >&2; exit 2; }
+VP_ACTIVE_REPO="$TARGET" "$HOST_SH" auth-status >/dev/null || exit 2
 
 # Seed the ledger if missing.
 if [ ! -f "$LOG" ]; then
   {
-    echo "# Issue log — cron-tracked GitHub issues (seen set)"
+    echo "# Issue log — cron-tracked issues (GitHub or Bitbucket; seen set)"
     echo
     echo "Append-only. Dedup key: owner/repo#issue. Status: UNTRIAGED | TRIAGED | WORKING | DONE | SKIPPED."
     echo "Populated by \`scripts/poll-issues.sh\` (cron) and updated by /work-issue, /status-check."
@@ -34,8 +35,7 @@ fi
 
 LABEL_ARG=()
 [ -n "$LABEL" ] && LABEL_ARG=(--label "$LABEL")
-REPO_SLUG="$(git -C "$TARGET" remote get-url origin 2>/dev/null | sed -E 's#^.*[:/]([^/]+/[^/]+)$#\1#; s#\.git$##')"
-[ -n "$REPO_SLUG" ] || { echo "FAIL: could not derive owner/repo from origin remote" >&2; exit 2; }
+REPO_SLUG="$(VP_ACTIVE_REPO="$TARGET" "$HOST_SH" remote-slug)" || exit $?
 
 # Composite keys already in the ledger (repository + issue number).
 SEEN="$(awk -F'|' '
@@ -49,8 +49,8 @@ SEEN="$(awk -F'|' '
 
 NEW=0
 NOW="$(date +%F)"
-# Tab-separated: number \t title
-while IFS=$'\t' read -r num title; do
+# Tab-separated: number \t state \t title
+while IFS=$'\t' read -r num _state title; do
   [ -z "$num" ] && continue
   key="$REPO_SLUG#$num"
   if grep -Fqx "$key" <<< "$SEEN"; then continue; fi
@@ -58,8 +58,7 @@ while IFS=$'\t' read -r num title; do
   title="${title//|/-}"
   printf '| %s | %s | %s | %s | UNTRIAGED |\n' "$num" "${REPO_SLUG:-?}" "$title" "$NOW" >> "$LOG"
   NEW=$((NEW+1))
-done < <(gh issue list -R "$REPO_SLUG" --state open "${LABEL_ARG[@]}" --json number,title \
-           --jq '.[] | "\(.number)\t\(.title)"' 2>/dev/null)
+done < <(VP_ACTIVE_REPO="$TARGET" "$HOST_SH" issue-list --state open "${LABEL_ARG[@]}" 2>/dev/null)
 
 echo "poll-issues: $NEW newly-seen issue(s) recorded in $LOG"
 [ "$NEW" -gt 0 ] && echo "  → run /status-check or /autofix-issues to process UNTRIAGED rows."
