@@ -14,6 +14,8 @@ working tree) for bugs. Read-only.
 3. Spawn via the Task tool with **`model: sonnet`**, embedding the `pr-reviewer` spec **verbatim**,
    the diff scope + active repo path, and `docs/review-rubric.md`.
 4. On return, record findings as `F-NNN` rows in `docs/findings.md` (source `pr-reviewer` +
-   diff ref). Print the findings table (most-severe first) + verdict.
+   diff ref). If the Return includes `memory_insight`, append a row to `docs/bugrabbit-memory.md`
+   too. Print the findings table (most-severe first) + verdict — this is the delivery, no PR/issue
+   comment is posted anywhere.
 
 No branch, no commit, no push — this is a read-only review of local changes.

@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.3.1] — 2026-08-08
+
+Clarified and extended (no behavior reversal — confirmed with the user): findings were already
+chat + `docs/findings.md` by default, with PR/issue comments opt-in-only locally (`/review-pr` step
+5) and CI (`bug-finder.yml`) as the one path that always posts, per ADR 0001 rule 12 — that stays.
+Documented this explicitly in `docs/findings.md`. Extended `memory_insight` (added to `bug-triager`/
+`bug-fixer` in 3.3.0) to `pr-reviewer`: a *recurring, repo-wide* finding (not a one-off) can now be
+promoted to `docs/bugrabbit-memory.md` via `/review-pr` and `/review-diff`, same Coordinator-append
+model as the other two agents.
+
 ## [3.3.0] — 2026-08-08
 
 Three named practices folded into `docs/fix-playbook.md`, plus a new cross-fix memory ledger.

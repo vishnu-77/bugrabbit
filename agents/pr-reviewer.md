@@ -70,5 +70,8 @@ Never edit code, never branch/commit/push, never open/merge PRs, never call anot
 
 `findings`: list of `{severity: critical|high|medium|low, category, location (file:line),
 failure_scenario, suggested_fix, verdict: CONFIRMED|PLAUSIBLE}`, most-severe first (empty if clean).
-`verdict`: `pass` (no critical/high) or `changes_required`. End with
+`verdict`: `pass` (no critical/high) or `changes_required`. `memory_insight` (optional) — only when a
+finding reveals a *recurring* pattern or durable repo-wide fact (e.g. "this codebase's input
+validation is inconsistently applied across handlers" — not "this one line has a bug"); the
+Coordinator appends it to `docs/bugrabbit-memory.md`, you do not edit that file. End with
 `STATUS: {DONE | NEEDS_FIX}` (`NEEDS_FIX` when `changes_required`).
