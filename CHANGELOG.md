@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.6.2] — 2026-08-10
+
+Sorted the loose ends from the previous pass:
+- `docs/templates/review-report.md`'s example table dropped its leading `#` column — it never
+  matched the actual 6-column shape (`severity | category | location | scenario | fix | verdict`)
+  that caused the 3.5.1 label-classifier bug in the first place. Docs-only, no script parses this
+  template, but leaving the same wrong shape sitting in a template file was exactly the kind of thing
+  that bug came from.
+- PR #3's description updated to cover the 4 follow-up commits that landed on it since it was opened
+  (label-classifier fix, `plugin-validate.yml`, wiring `validate-project.ps1` into it, Bitbucket
+  removal) — it only described the original commit before.
+
 ## [3.6.1] — 2026-08-10
 
 Likely bug fix in `host-gitlab.sh`'s `pr-diff` — **unconfirmed, no live GitLab access to verify
