@@ -138,10 +138,15 @@ case "$OP" in
 
   pr-diff)
     need_auth
-    # GitLab content-negotiates a raw unified diff via a .diff suffix on the MR endpoint.
-    curl -sS -f -H "PRIVATE-TOKEN: $BUGRABBIT_GL_TOKEN" "$API/merge_requests/$1.diff" || {
-      echo "FAIL: GET $API/merge_requests/$1.diff" >&2; exit 2
-    } ;;
+    # The `.diff` suffix trick is a GitLab *web-UI* feature (.../-/merge_requests/<iid>.diff), not
+    # part of the versioned /api/v4/ namespace — appending it to an API path (the previous approach
+    # here) isn't a documented API behavior. Use the real API endpoint instead: /changes returns the
+    # MR plus a per-file `changes` array (old_path/new_path/diff, no `diff --git`/`---`/`+++` header
+    # lines of its own), which we reconstruct into a standard unified diff.
+    gl_api GET "$API/merge_requests/$1/changes" | jq -r '
+      .changes[] |
+      "diff --git a/\(.old_path) b/\(.new_path)\n--- a/\(.old_path)\n+++ b/\(.new_path)\n\(.diff)"
+    ' ;;
 
   pr-view)
     need_auth

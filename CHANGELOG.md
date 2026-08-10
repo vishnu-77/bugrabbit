@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.6.1] — 2026-08-10
+
+Likely bug fix in `host-gitlab.sh`'s `pr-diff` — **unconfirmed, no live GitLab access to verify
+against**, flagged as such deliberately rather than claimed as fixed with confidence.
+
+Previous code hit `$API/merge_requests/$1.diff` where `$API` is under `/api/v4/projects/...`. The
+`.diff`/`.patch` suffix trick is a real GitLab feature but belongs to the **web UI**
+(`.../-/merge_requests/<iid>.diff`), not the versioned REST API namespace — appending it to an API
+path isn't documented API behavior as far as available knowledge goes. Looks like GitHub's `gh pr
+diff` shape got carried over by analogy without checking GitLab's actual API surface.
+
+Replaced with GitLab's real, documented endpoint: `GET /merge_requests/:iid/changes` (returns a
+`changes` array of `old_path`/`new_path`/`diff` per file, without `diff --git`/`---`/`+++` header
+lines of its own), reconstructed into a standard unified diff. This is a better-reasoned guess, not a
+confirmed fix — still needs a real GitLab merge request to verify against before anyone should trust
+`/review-pr`/`/work-issue` against a GitLab target's diff review end to end.
+
 ## [3.6.0] — 2026-08-10
 
 **Bitbucket support removed.** GitHub is the only host actually in use — confirmed by the user — and
