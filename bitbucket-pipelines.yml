@@ -58,12 +58,13 @@ pipelines:
                 } > /tmp/review.comment
                 bash .claude/scripts/host.sh pr-comment "$BITBUCKET_PR_ID" --body-file /tmp/review.comment
                 # Best-effort classifier (mirrors bug-finder.yml, same column-based extraction to
-                # avoid false-positive matches on category words inside prose columns): no-ops with
-                # a note on Bitbucket today (host-bitbucket.sh has no label equivalent), kept here so
-                # the step is a no-op away from working the moment Bitbucket labels are supported.
+                # avoid false-positive matches on category words inside prose columns — six columns,
+                # no leading "#", verified against a real generated table): no-ops with a note on
+                # Bitbucket today (host-bitbucket.sh has no label equivalent), kept here so the step
+                # is a no-op away from working the moment Bitbucket labels are supported.
                 ROWS="$(grep -E '^\|' /tmp/review.out || true)"
-                SEV_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$3); print tolower($3)}' | grep -vE '^(severity|-*)$' || true)"
-                CAT_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$4); print tolower($4)}' | grep -vE '^(category|-*)$' || true)"
+                SEV_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$2); print tolower($2)}' | grep -vE '^(severity|-*)$' || true)"
+                CAT_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$3); print tolower($3)}' | grep -vE '^(category|-*)$' || true)"
                 LABEL_ARGS=()
                 for sev in critical high medium low; do
                   echo "$SEV_COL" | grep -qxw "$sev" && { LABEL_ARGS+=(--label "severity:$sev"); break; }

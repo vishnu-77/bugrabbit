@@ -5,3 +5,4 @@ Populated by `scripts/poll-issues.sh` (cron) and updated by /work-issue, /status
 
 | issue | repo | title | first_seen | status |
 |-------|------|-------|-----------|--------|
+| 2 | vishnu-77/bug-fixer | bug-finder.yml never runs: no self-hosted "claude" runner registered | 2026-08-10 | UNTRIAGED |

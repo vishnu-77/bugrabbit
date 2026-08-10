@@ -1,5 +1,34 @@
 # Changelog
 
+## [3.5.1] — 2026-08-10
+
+Fix: the 3.5.0 label classifier applied **zero labels on every real review**, silently, always.
+
+Routine state-check on the repo (validators, live smoke tests, and a manual read of the new v3.5.0
+code) turned up a real bug: `bug-finder.yml`/`bitbucket-pipelines.yml`'s column-based label extraction
+read `$3`/`$4` for severity/category, assuming a 7-column table with a leading `#`
+(`# | severity | category | location | scenario | fix | verdict`). The actual table the CI prompt
+asks for — and the rubric documents — has 6 columns with no `#`. `$3`/`$4` therefore read the
+*category*/*location* values instead of *severity*/*category*, so neither the `critical|high|medium|
+low` nor the `correctness|regression|security|efficiency|tests` match loop ever matched anything.
+The step still printed "no labels applied" either way, so nothing looked broken.
+
+Confirmed by generating a real review table from the exact CI prompt (`claude -p` against a synthetic
+buggy diff) and running the actual extraction code against real model output, before and after:
+before, `high`/`correctness` findings produced empty `SEV_COL`/`CAT_COL`; after switching to `$2`/
+`$3`, the same output correctly produced `severity:high category:correctness category:tests`. Also
+re-verified the clean/empty-review case still produces zero labels, correctly, post-fix.
+
+Fixed in both `bug-finder.yml` and `bitbucket-pipelines.yml` (identical bug in both, since one mirrors
+the other). Corrected the matching column-order claim in
+`docs/adr/0004-label-classifier-and-ledger-timestamps.md`'s Consequences section rather than rewriting
+it, per this project's own ADR-history convention.
+
+Also live-verified in this pass (closing a gap 3.5.0 had flagged as untested): `host.sh issue-label`
+against the real issue #2 on this repo — `severity:low` did not exist as a label before, and the
+`gh api` call auto-created and applied it as claimed. `claude plugin validate --strict` and
+`tests/validate-project.ps1` both still pass against the full current tree.
+
 ## [3.5.0] — 2026-08-08
 
 Host-label classifier + ledger timestamps — an audit-trail pass. See

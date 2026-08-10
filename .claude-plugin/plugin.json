@@ -1,7 +1,7 @@
 {
   "name": "bugrabbit",
   "description": "BugRabbit — autonomous debugging for Claude Code. Automated issue triage, root-cause fixing, and PR review for GitHub, Bitbucket, or GitLab repos.",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "author": {
     "name": "vishnu-77"
   }
