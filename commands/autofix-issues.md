@@ -4,9 +4,9 @@ argument-hint: "[--label auto-fix] [--severity high] [--limit N] [--dry-run]"
 ---
 
 Use the enclosing Git repository, or the `/set-repo` override; the active repo's host must be
-authenticated (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh auth-status` — `gh` for GitHub, `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN`
-for Bitbucket). Run the fix pipeline across **all eligible open issues** and return a single
-well-formatted summary. Idempotent — safe to re-run.
+authenticated (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh auth-status` — `gh` for GitHub, `BUGRABBIT_GL_TOKEN` for GitLab).
+Run the fix pipeline across **all eligible open issues** and return a single well-formatted summary.
+Idempotent — safe to re-run.
 
 **Selection + dedup:**
 1. Refresh the seen set: run `${CLAUDE_PLUGIN_ROOT}/scripts/poll-issues.sh` (records new issues `UNTRIAGED`).

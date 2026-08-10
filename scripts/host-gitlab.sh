@@ -6,8 +6,8 @@
 # Auth: BUGRABBIT_GL_TOKEN (a GitLab personal or project access token with `api` scope — see
 # https://docs.gitlab.com/user/profile/personal_access_tokens/). Sent as a PRIVATE-TOKEN header, no
 # `glab auth login`-equivalent OAuth flow assumed (glab, GitLab's official CLI, could replace this
-# backend later if a repo already has it set up — REST was chosen to match the Bitbucket backend's
-# shape and avoid a second required CLI install).
+# backend later if a repo already has it set up — REST was chosen to match the GitHub backend's
+# host.sh contract shape and avoid a second required CLI install).
 #
 set -uo pipefail
 

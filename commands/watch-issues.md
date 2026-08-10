@@ -17,7 +17,6 @@ dedups by `owner/repo#issue` into `docs/issue-log.md`.
   3. if new `auto-fix`-labelled issues appeared, notifies (PushNotification) with the count and asks
      whether to run `/autofix-issues` — it does **not** auto-fix without confirmation.
   Announce the routine id and schedule. `setup` requires the active repo's host to be authenticated
-  (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh auth-status` — `gh` for GitHub, `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN` for
-  Bitbucket).
+  (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh auth-status` — `gh` for GitHub, `BUGRABBIT_GL_TOKEN` for GitLab).
 
 The cron only **tracks** live issues; fixing is always an explicit `/work-issue` or `/autofix-issues`.

@@ -22,6 +22,5 @@ changes, no branch.
    includes `memory_insight`, append one row to `docs/bugrabbit-memory.md` (both control-plane files,
    Coordinator-owned — the agent never edits them directly).
 5. **Label the issue** with `${CLAUDE_PLUGIN_ROOT}/scripts/host.sh issue-label $ARGUMENTS --label severity:<sev>` (the
-   severity `bug-triager` returned). Best-effort — a host that can't label (Bitbucket) prints a note
-   and continues; never block triage on this.
+   severity `bug-triager` returned). Best-effort — never block triage on a labeling failure.
 6. Announce the `FIX-NNN` id and severity. Do not start a fix — that is `/fix-issue` or `/assign`.

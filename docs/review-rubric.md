@@ -62,5 +62,5 @@ pr-label`: `severity:<max>` (the highest severity across findings) plus one `cat
 distinct category present, using the exact lowercase names from the two tables above (e.g.
 `severity:high`, `category:security`). `bug-triager` does the same for issues at triage time —
 `severity:<sev>` only, via `host.sh issue-label` (issues have no category, that's a diff-review
-concept). Best-effort: a host without label support (Bitbucket) prints a note and continues, never
-blocks. Unknown label names are created automatically where the host supports it (GitHub, GitLab).
+concept). Best-effort: never blocks on a labeling failure. Unknown label names are created
+automatically (both GitHub and GitLab support this).

@@ -22,10 +22,9 @@ It is designed to live inside any Git repository and automatically targets that 
 the only tree the agents touch. The full design is
 `docs/agent-system-plan.md`.
 
-**The active repo's host is the source of truth** (issues + PRs) — GitHub, Bitbucket Cloud, or GitLab
-(via `scripts/host.sh`, see `docs/adr/0002-host-agnostic-issue-pr-adapter.md` and
-`docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md`). No Jira. Every unit of work traces to a
-repository-qualified issue key (`owner/repo#N`) and a `FIX-NNN` backlog row.
+**The active repo's host is the source of truth** (issues + PRs) — GitHub or GitLab (via
+`scripts/host.sh`, see `docs/adr/0002-host-agnostic-issue-pr-adapter.md`). No Jira. Every unit of
+work traces to a repository-qualified issue key (`owner/repo#N`) and a `FIX-NNN` backlog row.
 
 ---
 
@@ -154,8 +153,8 @@ records findings — no branch, no fix.
 
 ## 7. Technology baseline
 
-- **`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh`** (GitHub via `gh`, Bitbucket Cloud + GitLab via REST) + **git**. Host
-  auth and per-repo remotes are prerequisites; `/init-repo` wires them and reports what is missing.
+- **`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh`** (GitHub via `gh`, GitLab via REST) + **git**. Host auth and per-repo
+  remotes are prerequisites; `/init-repo` wires them and reports what is missing.
 - **codebase-memory MCP** for structural code discovery (index each target once).
 - **`gate.sh`** auto-detects the target's toolchain (Node/npm, Python, Go, generic) and runs
   secrets (`gitleaks`) → deps (`osv-scanner`) → SAST (`semgrep`) → SBOM (`syft`, informational) →
@@ -202,7 +201,7 @@ Installed as a plugin, every command below is namespaced `/bugrabbit:<command>` 
 - `docs/fix-playbook.md` — the root-cause fix workflow the `bug-fixer` follows.
 - `docs/templates/{fix-task.md,review-report.md}` — task + review templates.
 - `${CLAUDE_PLUGIN_ROOT}/scripts/{gate,repo-status,find-bugs,ci-guard,ci-pr-meta-check,poll-issues,log-prompt}.sh`.
-- `${CLAUDE_PLUGIN_ROOT}/scripts/host.sh` + `host-github.sh` / `host-bitbucket.sh` — the issue/PR adapter (§7); see
+- `${CLAUDE_PLUGIN_ROOT}/scripts/host.sh` + `host-github.sh` / `host-gitlab.sh` — the issue/PR adapter (§7); see
   `docs/adr/0002-host-agnostic-issue-pr-adapter.md`.
 - `.github/workflows/bug-finder.yml` — the CI review workflow (template copied into GitHub targets only).
 

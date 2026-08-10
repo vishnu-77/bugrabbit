@@ -21,17 +21,12 @@ FILES=(
 )
 
 # The CI template + its host.sh backend are host-specific — install whichever one the target
-# actually uses (see docs/adr/0002-host-agnostic-issue-pr-adapter.md,
-# docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md). GitLab CI has no template yet.
+# actually uses (see docs/adr/0002-host-agnostic-issue-pr-adapter.md). GitLab CI has no template yet.
 CI_HOST="$(VP_ACTIVE_REPO="$TARGET" "$ROOT/scripts/host.sh" detect)"
 case "$CI_HOST" in
   github)
     FILES+=(".github/workflows/bug-finder.yml:.github/workflows/bug-finder.yml")
     FILES+=("scripts/host-github.sh:.claude/scripts/host-github.sh")
-    ;;
-  bitbucket)
-    FILES+=("bitbucket-pipelines.yml:bitbucket-pipelines.yml")
-    FILES+=("scripts/host-bitbucket.sh:.claude/scripts/host-bitbucket.sh")
     ;;
   *)
     echo "skipped: CI template (no template for host '$CI_HOST' yet — everything else installs normally)"

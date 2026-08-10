@@ -1,6 +1,6 @@
 # 0002. Host-agnostic issue/PR adapter (GitHub + Bitbucket Cloud)
 
-**Status:** Accepted
+**Status:** Accepted, Bitbucket portion retracted by [0005](0005-drop-bitbucket-support.md)
 **Date:** 2026-08-08
 **Supersedes:** [0001](0001-github-only-fix-and-push-no-pr.md)
 

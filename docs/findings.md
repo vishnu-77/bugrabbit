@@ -24,8 +24,8 @@ waived, not just its current state.
 
 When `pr-reviewer` finds anything on an actual PR (`/review-pr`, or CI), the Coordinator also applies
 `severity:<max>` + one `category:<c>` per distinct category as **PR labels** via `${CLAUDE_PLUGIN_ROOT}/scripts/host.sh
-pr-label` — best-effort, host-dependent (no-op with a note on Bitbucket). `/review-diff` never labels
-(no PR/issue exists for a working-tree diff).
+pr-label` — best-effort, never blocks. `/review-diff` never labels (no PR/issue exists for a
+working-tree diff).
 
 | F-NNN | Severity | Location | Issue (scenario) | Required action | Status | Source | Raised (UTC) | Updated (UTC) |
 |-------|----------|----------|------------------|-----------------|--------|--------|---------------|---------------|

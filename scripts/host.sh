@@ -1,26 +1,25 @@
 #!/usr/bin/env bash
 #
-# host.sh — dispatcher for issue/PR operations against the active repo's host (GitHub, Bitbucket
-# Cloud, or GitLab; see docs/adr/0002-host-agnostic-issue-pr-adapter.md and
-# docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md). Detects the host from the origin remote
-# (override with VP_HOST=github|bitbucket|gitlab for Enterprise/Server/self-hosted domains that
-# don't string-match) and forwards to scripts/host-<host>.sh. Acts on $VP_ACTIVE_REPO / the
-# enclosing git repo — same resolution as every other BugRabbit script (see resolve-repo.sh).
+# host.sh — dispatcher for issue/PR operations against the active repo's host (GitHub or GitLab;
+# see docs/adr/0002-host-agnostic-issue-pr-adapter.md and
+# docs/adr/0005-drop-bitbucket-support.md). Detects the host from the origin remote (override with
+# VP_HOST=github|gitlab for Enterprise/self-hosted domains that don't string-match) and forwards to
+# scripts/host-<host>.sh. Acts on $VP_ACTIVE_REPO / the enclosing git repo — same resolution as
+# every other BugRabbit script (see resolve-repo.sh).
 #
 # No op here ever opens or merges a PR — that capability simply doesn't exist in this contract,
 # which is what keeps "agents never open/merge PRs" true across hosts without per-host deny-guards.
 #
 # Usage: host.sh <op> [op-args...]
-#   detect                 — print the detected host id (github | bitbucket | unknown)
-#   remote-slug            — print owner/repo (or workspace/repo) parsed from the origin remote
+#   detect                 — print the detected host id (github | gitlab | unknown)
+#   remote-slug            — print owner/repo (or namespace/project) parsed from the origin remote
 #   auth-status            — exit 0 + "ok" if the host CLI/API is usable, else FAIL + exit 2
 #   issue-view <#>
 #   issue-list [--state open|all] [--label L] [--search Q]   — prints TSV: number\tstate\ttitle
 #   issue-state <#>        — prints normalized "open" or "closed"
 #   issue-create --title T [--body B] [--label L]
 #   issue-label <#> --label L [--label L2 ...]   — add labels to an existing issue (auto-creates the
-#                                                   label where the host supports it; no-op + note on
-#                                                   Bitbucket, which has no issue-label concept)
+#                                                   label where the host supports it)
 #   pr-diff <#>
 #   pr-view <#>
 #   pr-list [--state open]  — prints TSV: number\tstate\ttitle\tbranch
@@ -43,7 +42,6 @@ detect_host() {
   local url; url="$(git -C "$TARGET" remote get-url origin 2>/dev/null || true)"
   case "$url" in
     *github.com*) echo github ;;
-    *bitbucket.org*) echo bitbucket ;;
     *gitlab.com*) echo gitlab ;;
     *) echo unknown ;;
   esac
@@ -63,7 +61,7 @@ esac
 HOST="$(detect_host)"
 BACKEND="$VP_ROOT/scripts/host-$HOST.sh"
 [ -f "$BACKEND" ] || {
-  echo "FAIL: unsupported host '$HOST' for op '$OP' (set VP_HOST=github|bitbucket to override detection)" >&2
+  echo "FAIL: unsupported host '$HOST' for op '$OP' (set VP_HOST=github|gitlab to override detection)" >&2
   exit 2
 }
 SLUG="$(remote_slug)"

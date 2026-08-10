@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.6.0] — 2026-08-10
+
+**Bitbucket support removed.** GitHub is the only host actually in use — confirmed by the user — and
+Bitbucket support had been dead weight since it was built: a full REST backend and a CI template,
+never once exercised against a real Bitbucket repo (both 0002 and 0003 flagged this the whole time),
+adding real maintenance surface (e.g. the 3.5.1 label-classifier bug had to be fixed in two CI
+templates instead of one) for zero actual usage. See
+`docs/adr/0005-drop-bitbucket-support.md`.
+
+Removed:
+- `scripts/host-bitbucket.sh`, `bitbucket-pipelines.yml` — deleted, not deprecated.
+- Bitbucket detection from `host.sh`, the Bitbucket branch from `install-runtime.sh`.
+- `BITBUCKET_BRANCH`/`BITBUCKET_PR_DESTINATION_BRANCH` fallbacks from `ci-guard.sh`/
+  `ci-pr-meta-check.sh` (GitLab's `CI_COMMIT_REF_NAME`/`CI_MERGE_REQUEST_TARGET_BRANCH_NAME` stay).
+- Every Bitbucket mention across `CLAUDE.md`, `README.md`, `WORKFLOW.md`, `docs/agent-system-plan.md`,
+  `docs/findings.md`, `docs/review-rubric.md`, and 6 command files — `BUGRABBIT_BB_USER`/
+  `BUGRABBIT_BB_TOKEN` setup instructions gone with it.
+
+Unaffected: GitLab support (not requested for removal — flagged in the ADR that it carries the
+identical "never live-tested" caveat Bitbucket always had, but that's a separate, unresolved gap, not
+a reason to remove it too). The `host.sh` 10-op adapter contract itself is unchanged — this removes a
+backend, not the pattern. ADR 0002/0003 status lines updated to point at 0005; their historical bodies
+left as-is, per this project's own ADR-history convention.
+
+Re-verified after removal: `claude plugin validate --strict`, `tests/validate-project.ps1`, all
+`bash -n`/YAML/JSON checks, and a live `repo-status.sh`/`host.sh detect` run against this repo's real
+GitHub remote — all pass, GitHub path unaffected.
+
 ## [3.5.3] — 2026-08-10
 
 `plugin-validate.yml` now also runs `tests/validate-project.ps1` (the existing, more thorough
