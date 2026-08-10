@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.5.2] — 2026-08-10
+
+Added `.github/workflows/plugin-validate.yml`: runs `claude plugin validate . --strict` on every
+push and pull request to this plugin's own repo (not copied into targets, same scope as
+`release.yml`). Pure manifest/schema check, no model calls, no `ANTHROPIC_API_KEY` needed — a
+standard `ubuntu-latest` runner is enough. Catches a broken `.claude-plugin/plugin.json` or
+`marketplace.json` — the same check the community-marketplace review pipeline runs first — before it
+lands on a branch, rather than only at release time or marketplace-submission time.
+
+Claude Code CLI pinned to `2.1.226` in the workflow (not `@latest`), per the "no floating latest for
+CI tooling" rule — bump deliberately when needed.
+
+`tests/validate-project.ps1` (the existing, more thorough project-invariant check — repository-
+qualified identity, action pins, reviewer isolation, fail-closed gate semantics) is still not wired
+into any CI workflow; it remains a manual/local check per `WORKFLOW.md`. Flagged, not fixed here —
+out of scope for this pass, worth a follow-up if it's wanted in CI too.
+
 ## [3.5.1] — 2026-08-10
 
 Fix: the 3.5.0 label classifier applied **zero labels on every real review**, silently, always.
