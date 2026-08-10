@@ -6,8 +6,8 @@
 # Auth: BUGRABBIT_GL_TOKEN (a GitLab personal or project access token with `api` scope — see
 # https://docs.gitlab.com/user/profile/personal_access_tokens/). Sent as a PRIVATE-TOKEN header, no
 # `glab auth login`-equivalent OAuth flow assumed (glab, GitLab's official CLI, could replace this
-# backend later if a repo already has it set up — REST was chosen to match the Bitbucket backend's
-# shape and avoid a second required CLI install).
+# backend later if a repo already has it set up — REST was chosen to match the GitHub backend's
+# host.sh contract shape and avoid a second required CLI install).
 #
 set -uo pipefail
 
@@ -103,12 +103,50 @@ case "$OP" in
       '{title:$t, description:$b} + (if $l != "" then {labels:$l} else {} end)')"
     gl_api POST "$API/issues" "$PAYLOAD" | jq -r '"created: #\(.iid) \(.title)"' ;;
 
+  issue-label)
+    need_auth
+    NUM="$1"; shift
+    LABELS=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --label) LABELS+=("$2"); shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    [ "${#LABELS[@]}" -gt 0 ] || { echo "FAIL: at least one --label required" >&2; exit 2; }
+    JOINED="$(IFS=,; echo "${LABELS[*]}")"
+    # GitLab's add_labels creates any label name not already present in the project.
+    PAYLOAD="$(jq -n --arg l "$JOINED" '{add_labels:$l}')"
+    gl_api PUT "$API/issues/$NUM" "$PAYLOAD" >/dev/null
+    echo "ok: labeled #$NUM with $JOINED" ;;
+
+  pr-label)
+    need_auth
+    NUM="$1"; shift
+    LABELS=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --label) LABELS+=("$2"); shift 2 ;;
+        *) shift ;;
+      esac
+    done
+    [ "${#LABELS[@]}" -gt 0 ] || { echo "FAIL: at least one --label required" >&2; exit 2; }
+    JOINED="$(IFS=,; echo "${LABELS[*]}")"
+    PAYLOAD="$(jq -n --arg l "$JOINED" '{add_labels:$l}')"
+    gl_api PUT "$API/merge_requests/$NUM" "$PAYLOAD" >/dev/null
+    echo "ok: labeled #$NUM with $JOINED" ;;
+
   pr-diff)
     need_auth
-    # GitLab content-negotiates a raw unified diff via a .diff suffix on the MR endpoint.
-    curl -sS -f -H "PRIVATE-TOKEN: $BUGRABBIT_GL_TOKEN" "$API/merge_requests/$1.diff" || {
-      echo "FAIL: GET $API/merge_requests/$1.diff" >&2; exit 2
-    } ;;
+    # The `.diff` suffix trick is a GitLab *web-UI* feature (.../-/merge_requests/<iid>.diff), not
+    # part of the versioned /api/v4/ namespace — appending it to an API path (the previous approach
+    # here) isn't a documented API behavior. Use the real API endpoint instead: /changes returns the
+    # MR plus a per-file `changes` array (old_path/new_path/diff, no `diff --git`/`---`/`+++` header
+    # lines of its own), which we reconstruct into a standard unified diff.
+    gl_api GET "$API/merge_requests/$1/changes" | jq -r '
+      .changes[] |
+      "diff --git a/\(.old_path) b/\(.new_path)\n--- a/\(.old_path)\n+++ b/\(.new_path)\n\(.diff)"
+    ' ;;
 
   pr-view)
     need_auth

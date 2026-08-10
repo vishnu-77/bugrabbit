@@ -1,6 +1,6 @@
 # 0003. GitLab adapter, Bitbucket CI template, and gate.sh dependency/SAST/SBOM scans
 
-**Status:** Accepted
+**Status:** Accepted, Bitbucket CI template portion retracted by [0005](0005-drop-bitbucket-support.md)
 **Date:** 2026-08-08
 **Amends:** [0002](0002-host-agnostic-issue-pr-adapter.md) (does not supersede it — extends the same
 adapter contract to a third host and fills in scope 0002 explicitly deferred)

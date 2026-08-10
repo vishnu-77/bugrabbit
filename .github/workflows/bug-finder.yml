@@ -97,3 +97,32 @@ jobs:
             cat /tmp/review.out
           } > /tmp/review.comment
           bash .claude/scripts/host.sh pr-comment "${{ github.event.pull_request.number }}" --body-file /tmp/review.comment
+
+      - name: Label PR with severity/category (best-effort)
+        if: github.event_name == 'pull_request' && steps.diff.outputs.empty != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Best-effort classifier: read the severity/category *columns* of the review's markdown
+          # table (actual prompted/rubric order: | severity | category | location | scenario | fix |
+          # verdict | — six columns, no leading "#", verified by generating a real table from this
+          # exact prompt and counting fields), not the whole row — a raw whole-row grep false-positives
+          # on prose that happens to contain a category word (e.g. a suggested-fix column saying "add
+          # a regression test" wrongly matching "regression"). No data rows / no matches = a clean
+          # review: no labels, never fails the job either way.
+          ROWS="$(grep -E '^\|' /tmp/review.out || true)"
+          SEV_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$2); print tolower($2)}' | grep -vE '^(severity|-*)$' || true)"
+          CAT_COL="$(echo "$ROWS" | awk -F'|' 'NF>=8 {gsub(/^[ \t]+|[ \t]+$/,"",$3); print tolower($3)}' | grep -vE '^(category|-*)$' || true)"
+          LABEL_ARGS=()
+          for sev in critical high medium low; do
+            echo "$SEV_COL" | grep -qxw "$sev" && { LABEL_ARGS+=(--label "severity:$sev"); break; }
+          done
+          for cat in correctness regression security efficiency tests; do
+            echo "$CAT_COL" | grep -qxw "$cat" && LABEL_ARGS+=(--label "category:$cat")
+          done
+          if [ "${#LABEL_ARGS[@]}" -gt 0 ]; then
+            bash .claude/scripts/host.sh pr-label "${{ github.event.pull_request.number }}" "${LABEL_ARGS[@]}"
+          else
+            echo "no findings — no labels applied"
+          fi

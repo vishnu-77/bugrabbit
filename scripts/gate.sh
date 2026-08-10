@@ -98,7 +98,7 @@ fi
 # ---- SBOM (syft) ------------------------------------------------------------
 # Informational only, never blocks the gate — an SBOM is an artifact to inspect/archive, not a
 # pass/fail check like the three scanners above. Written to a temp file, NOT into the target tree —
-# gate.sh must never leave stray files behind (CLAUDE.md rule 11: clean git status before the next
+# gate.sh must never leave stray files behind (CLAUDE.md rule 12: clean git status before the next
 # fix). The caller (Coordinator/CI) copies it out if it wants to keep/diff it across runs.
 if have syft; then
   SBOM_OUT="/tmp/bugrabbit-sbom.$$.json"

@@ -5,9 +5,9 @@ every PR/commit. Modelled on `polaris-sandbox-helm` / `polaris-shared-helm-chart
 pinned Sonnet sub-agents + slash commands + thin helper scripts + docs backlog + deny-guards.
 
 ## Principles
-- **The active repo's host is the source of truth** (issues + PRs) — GitHub, Bitbucket Cloud, or
-  GitLab via `scripts/host.sh` (see `docs/adr/0002-host-agnostic-issue-pr-adapter.md` and
-  `docs/adr/0003-gitlab-adapter-and-bitbucket-ci.md`). No Jira. Work keyed by **`owner/repo#issue`**.
+- **The active repo's host is the source of truth** (issues + PRs) — GitHub or GitLab via
+  `scripts/host.sh` (see `docs/adr/0002-host-agnostic-issue-pr-adapter.md`). No Jira. Work keyed by
+  **`owner/repo#issue`**.
 - **Reusable**: auto-detects the enclosing Git root; `/set-repo` optionally targets a different repo.
 - **Autonomy**: agents **fix + push a branch**, never open/merge PRs (human does). Enforced by
   `.claude/settings.json` deny + `ci-guard.sh`.
@@ -27,12 +27,11 @@ bugrabbit/                      (plugin root)
               autofix-issues · review-pr · review-diff · assign · watch-issues ·
               status · status-check · findings · adr
     scripts/ gate.sh · repo-status.sh · find-bugs.sh · ci-guard.sh · poll-issues.sh ·
-             host.sh · host-github.sh · host-bitbucket.sh · host-gitlab.sh
+             host.sh · host-github.sh · host-gitlab.sh
   docs/
     agent-system-plan.md (this) · backlog.md · findings.md · issue-log.md · bugrabbit-memory.md
     review-rubric.md · fix-playbook.md · templates/{fix-task,review-report}.md · adr/
   .github/workflows/bug-finder.yml   TEMPLATE (GitHub target, copied by /init-repo)
-  bitbucket-pipelines.yml            TEMPLATE (Bitbucket target, copied by /init-repo)
 ```
 
 ## Roles
@@ -64,8 +63,8 @@ CI:      bug-finder.yml on PR/push → ci-guard assert → find diff → pr-revi
 
 ## Prerequisites
 - Host auth: `gh` CLI installed + authed for GitHub (`brew install gh && gh auth login`), or
-  `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN` for Bitbucket Cloud, or `BUGRABBIT_GL_TOKEN` for GitLab.
-- Target is a git repo with a GitHub, Bitbucket Cloud, or GitLab remote (`/init-repo` checks/creates).
+  `BUGRABBIT_GL_TOKEN` for GitLab.
+- Target is a git repo with a GitHub or GitLab remote (`/init-repo` checks/creates).
 - Target indexed in codebase-memory MCP (`index_repository`).
 - CI: a self-hosted runner labelled `claude` with authed local Claude Code. No `ANTHROPIC_API_KEY`.
 

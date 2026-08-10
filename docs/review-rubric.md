@@ -53,3 +53,14 @@ severity, and a verdict (`CONFIRMED` | `PLAUSIBLE`). Prefer fewer high-confidenc
 
 `[{severity, category, location (file:line), failure_scenario, suggested_fix, verdict}]`,
 most-severe first; empty list when clean. Verdict `pass` (no critical/high) or `changes_required`.
+
+## Labels (the classifier's visible form)
+
+Severity/category aren't only recorded in `docs/findings.md` — on an actual PR (`/review-pr`, or
+CI's `bug-finder.yml`), the Coordinator applies them as real host labels via `${CLAUDE_PLUGIN_ROOT}/scripts/host.sh
+pr-label`: `severity:<max>` (the highest severity across findings) plus one `category:<c>` per
+distinct category present, using the exact lowercase names from the two tables above (e.g.
+`severity:high`, `category:security`). `bug-triager` does the same for issues at triage time —
+`severity:<sev>` only, via `host.sh issue-label` (issues have no category, that's a diff-review
+concept). Best-effort: never blocks on a labeling failure. Unknown label names are created
+automatically (both GitHub and GitLab support this).

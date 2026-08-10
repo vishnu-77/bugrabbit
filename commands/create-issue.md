@@ -7,9 +7,8 @@ Use the enclosing Git repository, or the `/set-repo` override; the active repo's
 authenticated (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh auth-status`). Create an issue from **$ARGUMENTS**.
 
 1. Parse a `<title>` (required) and optional `--body`, `--label`, `--autofix` (adds the `auto-fix`
-   label so the cron poller and `/autofix-issues` pick it up — GitHub and GitLab support labels
-   natively; Bitbucket issues have no label equivalent and `host.sh` ignores `--label` there with a
-   note).
+   label so the cron poller and `/autofix-issues` pick it up — GitHub and GitLab both support labels
+   natively).
 2. **Dedup pre-flight.** Search existing open issues for a near-duplicate title
    (`${CLAUDE_PLUGIN_ROOT}/scripts/host.sh issue-list --state open --search "<title>"`). If a strong match exists,
    **stop and show it** — do not file a duplicate; ask the user whether to proceed anyway.

@@ -13,9 +13,9 @@ hands-on guide.
 - **Find bugs in every PR/commit** — a review pass locally (`/review-pr`, `/review-diff`) and in CI
   (`bug-finder.yml` on every PR/push, GitHub targets today).
 
-One target repo per session. The active repo's host is the tracker — GitHub, Bitbucket Cloud, or
-GitLab, via `scripts/host.sh`. Durable state is keyed by **`owner/repo#issue`**, so equal issue
-numbers in different repositories never collide.
+One target repo per session. The active repo's host is the tracker — GitHub or GitLab, via
+`scripts/host.sh`. Durable state is keyed by **`owner/repo#issue`**, so equal issue numbers in
+different repositories never collide.
 
 ---
 
@@ -23,8 +23,6 @@ numbers in different repositories never collide.
 
 ```
 brew install gh && gh auth login             # 1. GitHub target: GitHub CLI (prerequisite)
-# or, for a Bitbucket Cloud target:
-export BUGRABBIT_BB_USER=<username> BUGRABBIT_BB_TOKEN=<atlassian-api-token>
 # or, for a GitLab target:
 export BUGRABBIT_GL_TOKEN=<personal-or-project-access-token>
 claude --plugin-dir <path-to-this-plugin>    # 2. dev/local test, OR:
@@ -114,19 +112,22 @@ Skips anything already `DONE`/`SKIPPED` or with an open PR. Ends with one compre
 
 ### Review code for bugs (no fix)
 ```
-/review-pr 34            # a PR (GitHub, Bitbucket, or GitLab)
+/review-pr 34            # a PR (GitHub or GitLab)
 /review-diff             # your uncommitted changes
 /review-diff main...HEAD # a branch's changes
 ```
-Findings land in `docs/findings.md` as `F-NNN` rows (severity + `file:line` + scenario).
+Findings land in `docs/findings.md` as `F-NNN` rows (severity + `file:line` + scenario +
+`raised`/`updated` timestamps — the audit trail). On an actual PR (`/review-pr`, or CI), findings also
+become real `severity:<level>`/`category:<name>` labels on the PR, best-effort per host — see
+`docs/review-rubric.md` § Labels. `bug-triager` does the same for issues (`severity:<level>` only) at
+triage time.
 
 ### File an issue
 ```
 /create-issue "scan crashes on empty result" --autofix
 ```
-Dedups against open issues; `--autofix` labels it so the cron + `/autofix-issues` pick it up (GitHub
-and GitLab support labels natively; Bitbucket issues have no label equivalent, `host.sh` ignores
-`--label` there with a note).
+Dedups against open issues; `--autofix` labels it so the cron + `/autofix-issues` pick it up (both
+GitHub and GitLab support labels natively).
 
 ### Track new issues automatically (cron)
 ```
@@ -202,7 +203,7 @@ Review the `bug-finder` comment CI posts, then merge when happy.
 | Symptom | Fix |
 |---|---|
 | "no repository found" | run inside a Git repository or use `/set-repo <path>` |
-| issue/PR commands inert | host not authed → GitHub: `gh` not installed/authed, `brew install gh && gh auth login`. Bitbucket: `BUGRABBIT_BB_USER`/`BUGRABBIT_BB_TOKEN` unset. GitLab: `BUGRABBIT_GL_TOKEN` unset. |
+| issue/PR commands inert | host not authed → GitHub: `gh` not installed/authed, `brew install gh && gh auth login`. GitLab: `BUGRABBIT_GL_TOKEN` unset. |
 | "not a git repo" | `/init-repo <path>` (offers `git init`) |
 | reviewer/triage weak on code | target not indexed → `/init-repo` runs `index_repository` |
 | CI job does nothing | no self-hosted `claude` runner, or empty diff |

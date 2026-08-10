@@ -21,7 +21,7 @@ pipeline is `/fix-issue`.
    - the relevant reference doc (`bug-triager`/`bug-fixer` → `docs/fix-playbook.md`;
      `pr-reviewer` → `docs/review-rubric.md`).
 4. Mark the row `IN-PROGRESS` (`bug-triager`/`bug-fixer`) or `IN-REVIEW` (`pr-reviewer`/
-   `qa-verifier`).
+   `qa-verifier`); stamp its `updated` column `date -u +%Y-%m-%dT%H:%M:%SZ`.
 5. On return, triage the structured `STATUS:` result: `NEEDS_FIX` → re-assign `bug-fixer` with the
-   findings; record review findings in `docs/findings.md`. Agents never open/merge PRs — the human
-   does.
+   findings; record review findings in `docs/findings.md` (`raised`/`updated` stamped now). Agents
+   never open/merge PRs — the human does.

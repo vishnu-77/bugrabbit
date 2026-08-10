@@ -41,7 +41,7 @@ fi
 HOST="$(VP_ACTIVE_REPO="$TARGET" "$HOST_SH" detect)"
 echo "== $HOST tracker (active repo) =="
 if [ "$HOST" = "unknown" ]; then
-  echo "  (origin remote is not a recognised host — set VP_HOST=github|bitbucket to override)"
+  echo "  (origin remote is not a recognised host — set VP_HOST=github|gitlab to override)"
 elif ! VP_ACTIVE_REPO="$TARGET" "$HOST_SH" auth-status >/dev/null 2>&1; then
   VP_ACTIVE_REPO="$TARGET" "$HOST_SH" auth-status 2>&1 | sed 's/^/  /'
 else

@@ -12,8 +12,8 @@
 # commit type ∈ {fix|test|refactor|docs|chore|perf|sec}
 #
 # Inputs (auto-detected; override for local smoke tests):
-#   Branch:  GITHUB_HEAD_REF | BITBUCKET_BRANCH | CI_COMMIT_REF_NAME (GitLab) | current git branch
-#   Base:    GITHUB_BASE_REF | BITBUCKET_PR_DESTINATION_BRANCH | CI_MERGE_REQUEST_TARGET_BRANCH_NAME | "main"
+#   Branch:  GITHUB_HEAD_REF | CI_COMMIT_REF_NAME (GitLab) | current git branch
+#   Base:    GITHUB_BASE_REF | CI_MERGE_REQUEST_TARGET_BRANCH_NAME (GitLab) | "main"
 #   PR title (optional): PR_TITLE
 #
 # Runs locally against the current branch's commits vs base, and in CI.
@@ -26,9 +26,9 @@ note() { echo "info: $*"; }
 TYPES='fix|test|refactor|docs|chore|perf|sec'
 BRANCH_TYPES='fix|bugfix|chore|test|refactor|docs|perf'
 
-BRANCH="${GITHUB_HEAD_REF:-${BITBUCKET_BRANCH:-${CI_COMMIT_REF_NAME:-}}}"
+BRANCH="${GITHUB_HEAD_REF:-${CI_COMMIT_REF_NAME:-}}"
 [ -z "$BRANCH" ] && BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-BASE="${GITHUB_BASE_REF:-${BITBUCKET_PR_DESTINATION_BRANCH:-${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main}}}"
+BASE="${GITHUB_BASE_REF:-${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main}}"
 [ -z "$BRANCH" ] && { echo "error: could not determine branch (set GITHUB_HEAD_REF or run in a git repo)" >&2; exit 2; }
 
 note "branch: ${BRANCH}"; note "base: ${BASE}"

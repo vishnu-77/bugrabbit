@@ -1,0 +1,38 @@
+# plugin-validate.yml — validates .claude-plugin/{plugin.json,marketplace.json} AND this project's
+# own structural invariants (tests/validate-project.ps1) on every push and PR to THIS plugin's own
+# repo (same "not copied into targets" scope as release.yml). Catches a broken manifest — the thing
+# the community-marketplace review pipeline runs first — and a broken invariant (unpinned action SHA,
+# missing timeout, fork-PR guard removed, repository-qualified key dropped, etc.) before either lands
+# on a branch, well before a release or a marketplace submission. Pure schema/structure checks: no
+# model calls, no ANTHROPIC_API_KEY needed — pwsh ships preinstalled on GitHub-hosted runners, so a
+# standard ubuntu-latest runner is enough for both (unlike bug-finder.yml, no self-hosted runner
+# needed here).
+
+name: plugin-validate
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: plugin-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # Pinned per CLAUDE.md rule 9 (no floating `latest` for CI tooling) — bump deliberately.
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code@2.1.226
+
+      - name: Validate plugin manifest
+        run: claude plugin validate . --strict
+
+      - name: Validate project invariants
+        shell: pwsh
+        run: tests/validate-project.ps1

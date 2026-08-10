@@ -1,5 +1,153 @@
 # Changelog
 
+## [3.6.2] — 2026-08-10
+
+Sorted the loose ends from the previous pass:
+- `docs/templates/review-report.md`'s example table dropped its leading `#` column — it never
+  matched the actual 6-column shape (`severity | category | location | scenario | fix | verdict`)
+  that caused the 3.5.1 label-classifier bug in the first place. Docs-only, no script parses this
+  template, but leaving the same wrong shape sitting in a template file was exactly the kind of thing
+  that bug came from.
+- PR #3's description updated to cover the 4 follow-up commits that landed on it since it was opened
+  (label-classifier fix, `plugin-validate.yml`, wiring `validate-project.ps1` into it, Bitbucket
+  removal) — it only described the original commit before.
+
+## [3.6.1] — 2026-08-10
+
+Likely bug fix in `host-gitlab.sh`'s `pr-diff` — **unconfirmed, no live GitLab access to verify
+against**, flagged as such deliberately rather than claimed as fixed with confidence.
+
+Previous code hit `$API/merge_requests/$1.diff` where `$API` is under `/api/v4/projects/...`. The
+`.diff`/`.patch` suffix trick is a real GitLab feature but belongs to the **web UI**
+(`.../-/merge_requests/<iid>.diff`), not the versioned REST API namespace — appending it to an API
+path isn't documented API behavior as far as available knowledge goes. Looks like GitHub's `gh pr
+diff` shape got carried over by analogy without checking GitLab's actual API surface.
+
+Replaced with GitLab's real, documented endpoint: `GET /merge_requests/:iid/changes` (returns a
+`changes` array of `old_path`/`new_path`/`diff` per file, without `diff --git`/`---`/`+++` header
+lines of its own), reconstructed into a standard unified diff. This is a better-reasoned guess, not a
+confirmed fix — still needs a real GitLab merge request to verify against before anyone should trust
+`/review-pr`/`/work-issue` against a GitLab target's diff review end to end.
+
+## [3.6.0] — 2026-08-10
+
+**Bitbucket support removed.** GitHub is the only host actually in use — confirmed by the user — and
+Bitbucket support had been dead weight since it was built: a full REST backend and a CI template,
+never once exercised against a real Bitbucket repo (both 0002 and 0003 flagged this the whole time),
+adding real maintenance surface (e.g. the 3.5.1 label-classifier bug had to be fixed in two CI
+templates instead of one) for zero actual usage. See
+`docs/adr/0005-drop-bitbucket-support.md`.
+
+Removed:
+- `scripts/host-bitbucket.sh`, `bitbucket-pipelines.yml` — deleted, not deprecated.
+- Bitbucket detection from `host.sh`, the Bitbucket branch from `install-runtime.sh`.
+- `BITBUCKET_BRANCH`/`BITBUCKET_PR_DESTINATION_BRANCH` fallbacks from `ci-guard.sh`/
+  `ci-pr-meta-check.sh` (GitLab's `CI_COMMIT_REF_NAME`/`CI_MERGE_REQUEST_TARGET_BRANCH_NAME` stay).
+- Every Bitbucket mention across `CLAUDE.md`, `README.md`, `WORKFLOW.md`, `docs/agent-system-plan.md`,
+  `docs/findings.md`, `docs/review-rubric.md`, and 6 command files — `BUGRABBIT_BB_USER`/
+  `BUGRABBIT_BB_TOKEN` setup instructions gone with it.
+
+Unaffected: GitLab support (not requested for removal — flagged in the ADR that it carries the
+identical "never live-tested" caveat Bitbucket always had, but that's a separate, unresolved gap, not
+a reason to remove it too). The `host.sh` 10-op adapter contract itself is unchanged — this removes a
+backend, not the pattern. ADR 0002/0003 status lines updated to point at 0005; their historical bodies
+left as-is, per this project's own ADR-history convention.
+
+Re-verified after removal: `claude plugin validate --strict`, `tests/validate-project.ps1`, all
+`bash -n`/YAML/JSON checks, and a live `repo-status.sh`/`host.sh detect` run against this repo's real
+GitHub remote — all pass, GitHub path unaffected.
+
+## [3.5.3] — 2026-08-10
+
+`plugin-validate.yml` now also runs `tests/validate-project.ps1` (the existing, more thorough
+project-invariant check — repository-qualified identity, immutable action pins, reviewer isolation,
+fail-closed gate semantics) via `pwsh` on every push and PR, alongside the manifest check added in
+3.5.2. Flagged as a gap in that entry; closed here rather than left open, since it turned out to be
+free — `pwsh` ships preinstalled on GitHub-hosted `ubuntu-latest` runners, so no self-hosted runner or
+new infra is needed (unlike `bug-finder.yml`, which genuinely does need one — see issue #2, still
+open, still correctly low-priority). Re-confirmed `validate-project.ps1` passes clean before wiring
+it in.
+
+## [3.5.2] — 2026-08-10
+
+Added `.github/workflows/plugin-validate.yml`: runs `claude plugin validate . --strict` on every
+push and pull request to this plugin's own repo (not copied into targets, same scope as
+`release.yml`). Pure manifest/schema check, no model calls, no `ANTHROPIC_API_KEY` needed — a
+standard `ubuntu-latest` runner is enough. Catches a broken `.claude-plugin/plugin.json` or
+`marketplace.json` — the same check the community-marketplace review pipeline runs first — before it
+lands on a branch, rather than only at release time or marketplace-submission time.
+
+Claude Code CLI pinned to `2.1.226` in the workflow (not `@latest`), per the "no floating latest for
+CI tooling" rule — bump deliberately when needed.
+
+`tests/validate-project.ps1` (the existing, more thorough project-invariant check — repository-
+qualified identity, action pins, reviewer isolation, fail-closed gate semantics) is still not wired
+into any CI workflow; it remains a manual/local check per `WORKFLOW.md`. Flagged, not fixed here —
+out of scope for this pass, worth a follow-up if it's wanted in CI too.
+
+## [3.5.1] — 2026-08-10
+
+Fix: the 3.5.0 label classifier applied **zero labels on every real review**, silently, always.
+
+Routine state-check on the repo (validators, live smoke tests, and a manual read of the new v3.5.0
+code) turned up a real bug: `bug-finder.yml`/`bitbucket-pipelines.yml`'s column-based label extraction
+read `$3`/`$4` for severity/category, assuming a 7-column table with a leading `#`
+(`# | severity | category | location | scenario | fix | verdict`). The actual table the CI prompt
+asks for — and the rubric documents — has 6 columns with no `#`. `$3`/`$4` therefore read the
+*category*/*location* values instead of *severity*/*category*, so neither the `critical|high|medium|
+low` nor the `correctness|regression|security|efficiency|tests` match loop ever matched anything.
+The step still printed "no labels applied" either way, so nothing looked broken.
+
+Confirmed by generating a real review table from the exact CI prompt (`claude -p` against a synthetic
+buggy diff) and running the actual extraction code against real model output, before and after:
+before, `high`/`correctness` findings produced empty `SEV_COL`/`CAT_COL`; after switching to `$2`/
+`$3`, the same output correctly produced `severity:high category:correctness category:tests`. Also
+re-verified the clean/empty-review case still produces zero labels, correctly, post-fix.
+
+Fixed in both `bug-finder.yml` and `bitbucket-pipelines.yml` (identical bug in both, since one mirrors
+the other). Corrected the matching column-order claim in
+`docs/adr/0004-label-classifier-and-ledger-timestamps.md`'s Consequences section rather than rewriting
+it, per this project's own ADR-history convention.
+
+Also live-verified in this pass (closing a gap 3.5.0 had flagged as untested): `host.sh issue-label`
+against the real issue #2 on this repo — `severity:low` did not exist as a label before, and the
+`gh api` call auto-created and applied it as claimed. `claude plugin validate --strict` and
+`tests/validate-project.ps1` both still pass against the full current tree.
+
+## [3.5.0] — 2026-08-08
+
+Host-label classifier + ledger timestamps — an audit-trail pass. See
+`docs/adr/0004-label-classifier-and-ledger-timestamps.md` for full rationale.
+
+Added:
+- `host.sh issue-label`/`pr-label` ops (GitHub: `gh api`, auto-creates unknown labels; GitLab:
+  `add_labels`, same auto-create; Bitbucket: no-op + note, no label concept there).
+- `bug-triager` labels the issue `severity:<level>` at triage time; `pr-reviewer` labels the PR
+  `severity:<max>` + one `category:<c>` per distinct category, on `/review-pr` and in CI
+  (`bug-finder.yml`, `bitbucket-pipelines.yml` — a best-effort grep over the review's markdown table,
+  since CI has no structured agent Return to read).
+- `docs/backlog.md` rows: `created`/`updated` UTC columns. `docs/findings.md` rows: `raised`/`updated`.
+  Carried through by `/archive-task` into `docs/backlog-archive.md`, not dropped.
+- `/status-check`'s `STALE-DONE`/`STALE-PARTIAL` now reports how stale, using `updated`.
+
+Fixed in the same pass: `CLAUDE.md` §6 rule numbers shifted (a new rule 7 was inserted) — updated the
+two places that pointed at the old numbers by number (`scripts/gate.sh`'s comment, `docs/findings.md`'s
+cross-reference) rather than by name. `commands/review-pr.md` gained a new step 5 (labeling), so its
+own internal "step 5" self-reference and `docs/findings.md`'s "`/review-pr` step 5" reference both
+became step 6 — fixed. Historical CHANGELOG entries citing the old rule numbers are left as-is,
+same policy as the 3.0.0 rename: they're accurate to what CLAUDE.md said at the time.
+
+Real bug caught during verification, fixed before landing: the CI label-extraction step originally
+grepped whole markdown-table *rows* for known severity/category words, which false-positived
+`category:regression` on a review whose only real categories were `correctness`/`tests` — the word
+"regression" appeared inside an unrelated suggested-fix sentence ("add a regression test"). Fixed by
+reading the severity/category *columns* by position instead of the whole row text; re-verified
+against both a real findings table and a clean/empty-review table.
+
+Known gaps: labeling and the timestamp-stamping commands were not exercised against a live issue/PR
+in this change (the column-parsing logic itself was tested standalone, not through a real `gh`/GitLab
+call) — see the ADR's Consequences section for exactly what's unverified.
+
 ## [3.4.0] — 2026-08-08
 
 GitLab adapter, Bitbucket CI template, and dependency/SAST/SBOM scanning in `gate.sh`. See
