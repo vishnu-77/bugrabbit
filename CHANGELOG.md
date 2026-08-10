@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.5.3] — 2026-08-10
+
+`plugin-validate.yml` now also runs `tests/validate-project.ps1` (the existing, more thorough
+project-invariant check — repository-qualified identity, immutable action pins, reviewer isolation,
+fail-closed gate semantics) via `pwsh` on every push and PR, alongside the manifest check added in
+3.5.2. Flagged as a gap in that entry; closed here rather than left open, since it turned out to be
+free — `pwsh` ships preinstalled on GitHub-hosted `ubuntu-latest` runners, so no self-hosted runner or
+new infra is needed (unlike `bug-finder.yml`, which genuinely does need one — see issue #2, still
+open, still correctly low-priority). Re-confirmed `validate-project.ps1` passes clean before wiring
+it in.
+
 ## [3.5.2] — 2026-08-10
 
 Added `.github/workflows/plugin-validate.yml`: runs `claude plugin validate . --strict` on every
