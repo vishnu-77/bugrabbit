@@ -1,6 +1,6 @@
 # BugRabbit
 
-**Autonomous debugging for Claude Code.**
+**Autonomous debugging for Claude Code .**
 
 BugRabbit turns Claude Code into a structured bug-fixing and code-review workflow for any Git repository.
 
